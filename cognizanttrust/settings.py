@@ -40,6 +40,21 @@ if os.environ.get('WEBSITE_HOSTNAME'):
 # For production, allow all hosts if WEBSITE_HOSTNAME is set (Azure environment)
 if os.environ.get('WEBSITE_HOSTNAME'):
     ALLOWED_HOSTS = ['*']  # Allow all hosts in Azure
+    
+    # CSRF settings for Azure
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{os.environ.get('WEBSITE_HOSTNAME')}",
+        f"http://{os.environ.get('WEBSITE_HOSTNAME')}",
+    ]
+    # Add any specific Azure domain if needed
+    CSRF_TRUSTED_ORIGINS.extend([
+        'https://*.azurewebsites.net',
+        'http://*.azurewebsites.net',
+    ])
+    
+    # Additional Azure production settings
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_TZ = True
 
 
 # Application definition
