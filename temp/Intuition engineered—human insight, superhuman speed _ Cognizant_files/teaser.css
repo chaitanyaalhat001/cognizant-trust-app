@@ -1,0 +1,456 @@
+/* block specific CSS goes here */
+
+.cards .cards-section, .cards .containerwrapper {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+.cards.grid > div {
+  display: grid;
+  margin-left: -0.5rem;
+  margin-right: -0.5rem;
+}
+
+.teaser-wrapper, div[class*="vh-teaser-two-"] > div:first-child, .vh-teaser-two-6-6 > div:first-child .cards .cards-section, .cards .containerwrapper, .cards .cards-vertical, .cards .cards-horizontal {
+  display: flex;
+}
+
+.section.teaser-container {
+  position: relative;
+  padding: 3rem 0;
+}
+
+.bg-grd-theme-1 .cog-container {
+  padding: 3rem 0;
+}
+
+.teaser.full-width {
+  padding: 0 0.5rem;
+  width: 100%;
+}
+
+.teaser.img-teaser {
+  padding: 1rem 1.5rem;
+}
+
+.teaser.full-width p.button-container a {
+  margin-bottom: 0;
+}
+
+.target-block .teaser-content {
+  padding: 1rem;
+}
+
+div[class*="vh-teaser-two-"] {
+  flex-direction: unset !important;
+}
+
+.tooltip-help-grid .teaser-content {
+  margin: 0 !important;
+}
+
+.horizontal-teaser.col-2-animated-teaser .teaser-content {
+  padding: 2rem;
+}
+
+.target-block {
+  margin-top: 60px;
+}
+
+.target-block .animate-image {
+  position: relative;
+}
+
+.title-wrapper + .teaser-wrapper > .horizontal-teaser.bd-grow-effect {
+  margin: 1rem auto 0;
+  padding: 0;
+}
+
+@media(min-width: 600px) {
+  .target-block .animate-image img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+  }
+
+  .horizontal-teaser.img-right .teaser-image {
+    order: 2;
+  }
+}
+
+.teaser button.link-like-button, .teaser a.link-like-button{
+  color: var(--link-color);
+  font-weight: 600;
+  background: transparent;
+  padding: 0;
+  margin-right: 0.5rem;
+}
+
+.teaser button.link-like-button:hover, .teaser a.link-like-button:hover{
+    background: transparent !important;
+    color: var(--link-hover-color);
+}
+
+.cards .cards-horizontal img {
+  height: 100%;
+  width: 100%;
+  aspect-ratio: 21/9;
+  object-fit: cover;
+}
+
+.cog-speaker-card.cog-teaser .teaser-content {
+  margin: 1rem 0 0;
+}
+
+.cog-speaker-card.cog-teaser .teaser-image img {
+  width: 100%;
+}
+
+.flex-equalheight.cog-teaser.icon-hz-teaser {
+  flex-grow: 1;
+}
+
+.horizontal-teaser p.button-container{
+  margin-top: auto;
+}
+
+.cog-teaser .cmp-teaser{
+  display: flex;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.teaser.full-width .teaser-image, .teaser.full-width .teaser-image img {
+  width: 100%;
+}
+
+.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-image {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 0 auto; /* stylelint-disable-line */
+  flex: 0 0 auto;
+  max-width: 10%;
+}
+
+.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-image img {
+  max-inline-size: unset;
+  width: 100%;
+}
+
+.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-content {
+  -webkit-box-ordinal-group: 3;
+  -ms-flex-order: 2;
+  display: block;
+  order: 2;
+  padding: 0 0 0 1rem;
+}
+
+.teaser-container.column-one {
+  padding: 3rem 0 !important;
+}
+
+a.desc-link-arrow::after{
+  content: none !important;
+}
+
+.teaser.full-width p.button-container {
+  margin-bottom: 0;
+}
+
+.cog-speaker-card.cog-teaser .cmp-teaser {
+  display: grid;
+}
+
+div[class*="vh-teaser-two-"] .horizontal-teaser {
+  padding: 0 !important;
+}
+
+div[class*="vh-teaser-two-"] > div:not(:last-child) .cmp-teaser {
+ margin-bottom: 1rem;
+}
+
+div[class*="vh-teaser-two-"] div:nth-child(2) {
+  grid-row-gap: 1rem;
+}
+
+div[class*="vh-teaser-two-"] .teaser-content > div {
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Tooltip-help without carousel --- */
+.tooltip-help-grid, .tooltip-help-grid .default-content-wrapper{
+  width: 100%;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help {
+  display: grid;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help > div{
+  display: flex;
+  -webkit-box-ordinal-group: 3;
+  -ms-flex-order: 2;
+  -webkit-box-flex: 1;
+  -ms-flex-positive: 1;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  flex-direction: column;
+  flex-grow: 1;
+  order: 2;
+  padding: 1rem;
+  position: relative;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help .button-container{
+  -webkit-box-flex: 1;
+   -ms-flex-positive: 1;
+   -webkit-box-pack: end;
+   -ms-flex-pack: end;
+   -webkit-box-align: start;
+   -ms-flex-align: start;
+   align-items: flex-start;
+   flex-grow: 1;
+   justify-content: flex-end;
+   display: flex;
+   flex-direction: column;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help .button-container .link-like-button{
+  -webkit-box-orient: horizontal;
+  -webkit-box-direction: reverse;
+  display: -webkit-inline-box;
+  display: inline-flex;
+  flex-direction: row-reverse;
+  margin-right: .5rem;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help .button-container .link-like-button::before{
+  content: ""!important;
+  font-family: Cognizant-Icons; /* stylelint-disable-line */
+  margin-left: .5rem;
+}
+
+.tooltip-help-grid .tooltip-help-wrapper .tooltip-help .button-container .link-like-button::after {
+  inset: 0;
+  content: "";
+  position: absolute;
+  z-index: 1;
+}
+
+.background-transparent .teaser-wrapper.tooltip-help-wrapper h3{
+  color: var(--accent2-dark);
+}
+
+/* card css style here */
+
+.teaser-wrapper:has(.cog-speaker-card) {
+  padding: 0 0.5rem;
+  display: block;
+}
+
+.teaser.cog-speaker-card .teaser-content h5 a {
+  font-weight: 400;
+}
+
+.teaser.cog-speaker-card .teaser-content .speaker-share-links a::after {
+  font-weight: 400;
+  margin-left: 0;
+  margin-right: 0.5rem;
+}
+
+.form-container .cards.speaker-card {
+  padding-bottom: 3rem;
+}
+
+.teaser.cog-teaser.vertical-view.flex-equalheight.icon-teaser {
+  padding: 0 0.5rem;
+}
+
+.teaser.cog-teaser.vertical-view.icon-image img {
+  object-fit: contain;
+}
+
+.cards.grid .cards-card-body {
+  margin: 0;
+  padding: 1rem;
+}
+
+.cards .cards-vertical, .cards .containerwrapper {
+  flex-direction: column;
+}
+
+.cards .cards-horizontal .cards-card-img {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+.teaser.cog-teaser.vertical-view.img-square .teaser-image img{
+  aspect-ratio: 4/3 !important;
+}
+
+.cards .cards-horizontal .cards-card-body {
+  width: 100%;
+}
+
+.cards .cards-horizontal:not(:last-child) {
+  margin-bottom: 1rem;
+}
+
+.cards.bd-gray-light ul li, .cards.bd-gray-light .cards-vertical, .cards.bd-gray-light .cards-horizontal{
+  border: 1px solid var(--highlight-background-color);
+}
+
+/* home page background parallax with teaser */
+ 
+.bg-content-bottom .cog-teaser {
+  padding: 2rem 1rem!important;
+}
+ 
+/* home page fix */
+.bg-content-bottom.teaser-container {
+  padding: 0;
+}
+ 
+.container-clickable p  {
+  color: var(--link-color);
+}
+
+.container-clickable.partner-logo p {
+  color: var(--primary);
+  font-size: 15px;
+  font-weight: 400;
+  margin-bottom: 0;
+}
+
+.container-clickable p:hover {
+  color: var(--link-hover-color);
+}
+
+.container-clickable.partner-logo p:hover, .container-clickable h5  {
+  color: var(--link-color);
+}
+
+.container-clickable.partner-logo h5 {
+  font-weight: 400;
+  margin-bottom: 0;
+}
+
+.container-clickable h5:hover {
+  color: var(--primary);
+}
+
+.container-clickable.bg-primary h5:hover {
+  color: var(--link-hover-color);
+}
+
+.cog-teaser.icon-hz-teaser .teaser-content h5 {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1rem;
+  margin-bottom: 0;
+}
+
+.bg-content-bottom.teaser-container .teaser-wrapper .teaser-content h5 {
+  font-size: 1.35rem !important;
+}
+
+.bg-content-bottom.teaser-container .teaser-wrapper {
+  display: flex;
+  align-items: flex-end;
+  min-height: 500px;
+}
+
+.image-wrapper + .teaser-wrapper .teaser.full-width h5{
+  font-size: 2.35rem;
+}
+
+.teaser.cog-teaser.vertical-view .teaser-content ul {
+  padding-left: 1.25rem;
+}
+
+@media (max-width: 599.98px) {
+  .cards .cards-horizontal {
+    flex-direction: column;
+  }
+  
+  .cards .cards-horizontal:not(:last-child) {
+    margin-top: 1rem;
+  }
+}
+
+@media (min-width: 600px) {
+  .cards .cards-horizontal .cards-card-img {
+    width: 25%;
+  }
+
+  .cards .cards-horizontal .cards-card-body {
+    width: 75%;
+  }
+}
+
+.flex-equalheight.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-image{
+  max-width: 100%;
+}
+
+.cog-teaser.horizontal-teaser.icon-hz-teaser .cmp-teaser .teaser-content, .cog-teaser.vertical-teaser.icon-hz-teaser .cmp-teaser .teaser-content{
+  padding: 1rem;
+}
+
+@media (min-width: 600px) {
+  .flex-equalheight .horizontal-view .teaser-image, .flex-equalheight.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-image  {
+      -webkit-box-flex: 0;
+      flex: 0 0 auto;
+      width: 25%;
+  }
+  
+ .flex-equalheight .horizontal-view .teaser-content, .flex-equalheight.cog-teaser.horizontal-teaser.icon-hz-teaser .teaser-content {
+    -webkit-box-flex: 0;
+    flex: 0 0 auto;
+    width: 75%;
+}
+}
+
+@media (min-width: 1024px) {
+  .flex-equalheight.cog-teaser.icon-hz-teaser .cmp-teaser .teaser-image{
+      -webkit-box-flex: 0;
+      flex: 0 0 auto;
+      width: 25%;
+      max-width: 100%;
+  }
+}
+
+.teaser.no-link.cog-speaker-card .teaser-image a {
+  pointer-events: none;
+}
+
+.teaser.no-link.full-width .teaser-image a {
+  pointer-events: none;
+}
+
+.teaser.no-link.col-2-animated-teaser .teaser-content h5 {
+  font-weight: 600;
+}
+
+.tooltip-help-grid + .teaser-container.column-one, .tooltip-carousel + .teaser-container.column-one {
+  padding: 3rem 0 0 !important;
+}
+
+@media (min-width: 1200px) {
+  .container-clickable h5 {
+      font-size: 1.35rem;
+  }
+}
+
+ /* custom-teaser-video variation with twocol animation playicon alignment */
+.teaser.custom-teaser-video .teaser-image .cmp-button {
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent3-medium);
+}
+
+.teaser-wrapper:has(.horizontal-teaser:not(.content-fit).vertical-middle) {
+  display: block;
+}

@@ -1,0 +1,835 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+
+{% block title %}Donation Management - CognizantTrust{% endblock %}
+
+{% block content %}
+<!-- CSRF Token for API calls -->
+{% csrf_token %}
+
+<style>
+    /* Donation management specific styling (dark mode handled globally) */
+    .stats-card {
+        border-radius: var(--radius-lg);
+        padding: var(--space-lg);
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .stats-number.currency-amount {
+        font-size: 1.25rem;
+    }
+
+    .stats-label {
+        color: var(--gray-600);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .table-container {
+        border-radius: var(--radius-xl);
+        overflow: hidden;
+    }
+
+    .donation-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: var(--radius-lg);
+        padding: var(--space-md);
+        margin-bottom: var(--space-md);
+        border-left: 4px solid var(--cognizant-blue);
+        transition: all 0.3s ease;
+    }
+
+    .donation-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+        border-left-color: var(--cognizant-orange);
+    }
+
+    .record-blockchain-btn:hover {
+        transform: scale(1.05);
+    }
+
+    /* Enhanced table styling - DARK MODE COMPATIBLE */
+    .table th {
+        font-weight: 600;
+        border: none;
+        padding: 1rem;
+        font-size: 0.875rem;
+    }
+
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+
+    .table tbody tr:hover {
+        transform: translateY(-1px);
+    }
+    
+    /* Light mode specific styles */
+    html:not([data-theme="dark"]) .table th {
+        background: linear-gradient(135deg, var(--cognizant-navy) 0%, var(--cognizant-purple) 100%);
+        color: white;
+    }
+    
+    html:not([data-theme="dark"]) .table td {
+        border-color: var(--gray-200);
+    }
+    
+    html:not([data-theme="dark"]) .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.1);
+    }
+
+    /* Notification styling */
+    .alert {
+        border-radius: var(--radius-lg);
+        border: none;
+        padding: var(--space-lg);
+    }
+
+    .btn {
+        transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+</style>
+
+<!-- Header Section -->
+<div class="hero-section bg-cognizant-gradient text-white">
+    <div class="container">
+        <div class="row align-items-center py-5">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-3">
+                    <i class="fas fa-heart me-3 text-cognizant-orange"></i>
+                    Donation Management
+                </h1>
+                <p class="lead mb-4">
+                    Manage all donation transactions and record them on the blockchain for complete transparency
+                </p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="/admin/" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Section -->
+<section class="pb-5 bg-secondary" style="margin-top: -1px; padding-top: 2rem; position: relative; z-index: 1;">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">{{ total_donations }}</div>
+                    <div class="stats-label">Total Donations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-orange">{{ total_donated_amount|inr_format }}</div>
+                    <div class="stats-label">Total Amount</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-green">{{ recorded_donations_count }}</div>
+                    <div class="stats-label">Blockchain Recorded</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-purple">{{ pending_donations_count }}</div>
+                    <div class="stats-label">Pending Recording</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Donation Transactions Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-cognizant-navy mb-0">
+                <i class="fas fa-list me-2 text-cognizant-blue"></i>
+                All Donation Transactions
+            </h3>
+            <div class="d-flex gap-2">
+                <button class="btn btn-cognizant-secondary btn-sm" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+                <a href="https://sepolia.etherscan.io/address/0x1b8DC2B5A23070F192531671108d4049B5621710" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="fab fa-ethereum me-1"></i>
+                    View Contract
+                </a>
+            </div>
+        </div>
+
+        {% if donations %}
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="donation-management-table">
+                    <thead>
+                        <tr>
+                            <th>Donor Details</th>
+                            <th>Amount</th>
+                            <th>Purpose</th>
+                            <th>Timestamp</th>
+                            <th>UPI Reference</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for donation in donations %}
+                        <tr id="donation-{{ donation.id }}">
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="bg-cognizant-light rounded-circle d-flex align-items-center justify-content-center me-3"
+                                         style="width: 40px; height: 40px;">
+                                        <i class="fas fa-user text-cognizant-blue"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-gray-800">{{ donation.donor_name }}</div>
+                                        <small class="text-gray-500">ID: {{ donation.id|slice:":8" }}...</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-cognizant-green fs-5">{{ donation.amount|inr_format }}</span>
+                            </td>
+                            <td>
+                                <div class="text-wrap" style="max-width: 200px;">
+                                    {{ donation.purpose|truncatechars:50 }}
+                                    {% if donation.purpose|length > 50 %}
+                                        <button class="btn btn-link btn-sm p-0 text-cognizant-blue" 
+                                                data-bs-toggle="tooltip" 
+                                                title="{{ donation.purpose }}">
+                                            <i class="fas fa-info-circle"></i>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <div>
+                                    <div class="small fw-bold">{{ donation.timestamp|date:"M d, Y" }}</div>
+                                    <div class="small text-gray-500">{{ donation.timestamp|date:"H:i" }}</div>
+                                </div>
+                            </td>
+                            <td>
+                                <code class="small">{{ donation.upi_ref_id }}</code>
+                            </td>
+                            <td>
+                                {% if donation.blockchain_status == 'recorded' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>
+                                        Recorded
+                                    </span>
+                                {% elif donation.blockchain_status == 'pending' %}
+                                    <span class="badge bg-warning">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Pending
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>
+                                        Failed
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if donation.blockchain_status == 'pending' %}
+                                    <button class="btn btn-cognizant-primary btn-sm record-blockchain-btn" 
+                                            data-donation-id="{{ donation.id }}"
+                                            data-donor-name="{{ donation.donor_name }}"
+                                            data-amount="{{ donation.amount }}"
+                                            data-purpose="{{ donation.purpose }}"
+                                            data-upi-ref="{{ donation.upi_ref_id }}">
+                                        <i class="fas fa-cube me-1"></i>
+                                        Record on Blockchain
+                                    </button>
+                                {% elif donation.blockchain_status == 'recorded' %}
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-outline-primary btn-sm" 
+                                                data-bs-toggle="tooltip" 
+                                                title="Transaction Hash: {{ donation.blockchain_tx_hash }}"
+                                                onclick="copyToClipboard('{{ donation.blockchain_tx_hash }}')">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                        <a href="https://sepolia.etherscan.io/tx/{{ donation.blockchain_tx_hash|add_hex_prefix }}" 
+                                           target="_blank" 
+                                           class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-external-link-alt"></i>
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <button class="btn btn-outline-danger btn-sm" disabled>
+                                        <i class="fas fa-exclamation-triangle me-1"></i>
+                                        Failed
+                                    </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3">
+                <i class="fas fa-inbox fa-3x text-gray-400"></i>
+            </div>
+            <h5 class="text-gray-600">No donations found</h5>
+            <p class="text-gray-500">Donations will appear here once submitted by users.</p>
+            <a href="{% url 'donations:home' %}" class="btn btn-cognizant-primary">
+                <i class="fas fa-plus me-1"></i>
+                Test with Sample Donation
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Info Section -->
+<section class="py-5 bg-secondary">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card border-0 shadow-lg">
+                    <div class="card-body p-4">
+                        <h5 class="card-title text-cognizant-navy mb-3">
+                            <i class="fas fa-info-circle me-2 text-cognizant-blue"></i>
+                            Blockchain Recording Process
+                        </h5>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <h6 class="text-cognizant-navy">How to Record:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-play text-primary me-2"></i>Click "Record on Blockchain"</li>
+                                    <li><i class="fas fa-wallet text-primary me-2"></i>Connect MetaMask wallet</li>
+                                    <li><i class="fas fa-check text-primary me-2"></i>Confirm transaction</li>
+                                    <li><i class="fas fa-cube text-primary me-2"></i>Wait for confirmation</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <h6 class="text-cognizant-navy">What Gets Recorded:</h6>
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-user text-success me-2"></i>Donor information</li>
+                                    <li><i class="fas fa-coins text-success me-2"></i>Donation amount</li>
+                                    <li><i class="fas fa-heart text-success me-2"></i>Purpose description</li>
+                                    <li><i class="fas fa-clock text-success me-2"></i>Timestamp</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Contract configuration
+    const CONTRACT_ADDRESS = '0x1b8DC2B5A23070F192531671108d4049B5621710'; // Your deployed contract address
+    const CONTRACT_ABI = [
+        {
+            "inputs": [
+                {"internalType": "string", "name": "donorName", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "purpose", "type": "string"},
+                {"internalType": "string", "name": "upiRefId", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"}
+            ],
+            "name": "recordTransaction",
+            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "bytes32", "name": "txHash", "type": "bytes32"}
+            ],
+            "name": "getTransaction",
+            "outputs": [
+                {"internalType": "string", "name": "donorName", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "purpose", "type": "string"},
+                {"internalType": "string", "name": "upiRefId", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"},
+                {"internalType": "uint256", "name": "timestamp", "type": "uint256"}
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getTotalTransactions",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ];
+
+    let web3;
+    let contract;
+    let userAccount;
+
+    // Initialize Web3 and MetaMask
+    async function initializeWeb3() {
+        if (typeof window.ethereum !== 'undefined') {
+            web3 = new Web3(window.ethereum);
+            contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+            console.log('Web3 and contract initialized successfully');
+            return true;
+        } else {
+            showAlert('MetaMask not detected. Please install MetaMask extension.', 'error');
+            return false;
+        }
+    }
+
+    // Connect MetaMask wallet
+    async function connectWallet() {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0];
+            console.log('Connected account:', userAccount);
+            return userAccount;
+        } catch (error) {
+            console.error('Failed to connect wallet:', error);
+            showAlert('Failed to connect MetaMask wallet: ' + error.message, 'error');
+            return null;
+        }
+    }
+
+    // Record donation on blockchain
+    async function recordOnBlockchain(donationId, donorName, amount, purpose, upiRefId) {
+        try {
+            if (!web3 || !contract) {
+                const initialized = await initializeWeb3();
+                if (!initialized) return;
+            }
+
+            if (!userAccount) {
+                userAccount = await connectWallet();
+                if (!userAccount) return;
+            }
+
+            // Show initial loading modal
+            showLoadingModal('Recording on Blockchain...', 'Please approve the transaction in MetaMask and wait for confirmation.');
+            showAlert('🚀 Initiating blockchain recording...', 'info');
+            
+            // Convert amount to paisa (smallest unit)
+            const amountInPaisa = Math.floor(parseFloat(amount) * 100);
+            
+            console.log('Recording transaction with:', {
+                donorName,
+                amountInPaisa,
+                purpose,
+                upiRefId,
+                adminWallet: userAccount
+            });
+
+            // Call smart contract
+            const tx = await contract.methods.recordTransaction(
+                donorName,
+                amountInPaisa,
+                purpose,
+                upiRefId,
+                userAccount
+            ).send({ from: userAccount });
+
+            console.log('Transaction successful:', tx);
+            console.log('Transaction hash:', tx.transactionHash);
+            showAlert('✅ Successfully recorded on blockchain!', 'success');
+            
+            // Update loading modal for backend update
+            updateLoadingModal('Updating Database...', 'Blockchain transaction successful! Now updating the backend database.');
+
+            // Update backend with transaction hash
+            console.log('About to call updateBackendStatus...');
+            try {
+                await updateBackendStatus(donationId, tx.transactionHash, userAccount);
+                console.log('updateBackendStatus completed successfully');
+                hideLoadingModal();
+            } catch (backendError) {
+                console.error('Backend update failed with error:', backendError);
+                hideLoadingModal();
+                showAlert('❌ Backend update failed: ' + backendError.message, 'error');
+            }
+
+        } catch (error) {
+            console.error('Blockchain recording failed:', error);
+            hideLoadingModal();
+            showAlert('❌ Failed to record on blockchain: ' + error.message, 'error');
+        }
+    }
+
+    // Update backend with blockchain status
+    async function updateBackendStatus(donationId, txHash, adminWallet) {
+        try {
+            console.log('=== UPDATING BACKEND STATUS (Donation Management) ===');
+            console.log('Donation ID:', donationId);
+            console.log('TX Hash:', txHash);
+            console.log('Admin Wallet:', adminWallet);
+            
+            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfElement ? csrfElement.value : '';
+            console.log('CSRF Token:', csrfToken ? 'Found' : 'Missing');
+            
+            if (!csrfToken) {
+                console.error('CSRF token missing!');
+                showAlert('CSRF token missing. Please refresh the page and try again.', 'error');
+                return;
+            }
+            
+            const requestData = {
+                transaction_id: donationId,
+                tx_hash: txHash,
+                admin_wallet: adminWallet
+            };
+            console.log('Request Data:', requestData);
+            console.log('Sending request to: /admin/record-blockchain/');
+            
+            const response = await fetch('/admin/record-blockchain/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            console.log('Response status:', response.status);
+            const data = await response.json();
+            console.log('Response data:', data);
+            
+            if (data.success) {
+                console.log('✅ Backend updated successfully!');
+                updateLoadingModal('Complete!', 'Transaction successfully recorded on blockchain and database updated!');
+                showAlert('💾 Database updated successfully!', 'success');
+                
+                // Hide loading modal and refresh after showing success
+                setTimeout(() => {
+                    hideLoadingModal();
+                    showAlert('🎉 Transaction complete! Page will refresh to show updated status.', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }, 2000);
+            } else {
+                console.error('Backend update failed:', data.error);
+                showAlert('❌ Backend update failed: ' + data.error, 'error');
+            }
+        } catch (error) {
+            console.error('Backend update failed:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                name: error.name
+            });
+            showAlert('Failed to update backend: ' + error.message, 'error');
+            throw error; // Re-throw so the calling function can catch it
+        }
+    }
+
+    // Test backend connectivity
+    async function testBackendConnection() {
+        try {
+            console.log('Testing backend connection...');
+            const response = await fetch('/admin/record-blockchain/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({test: 'ping'})
+            });
+            console.log('Backend test response status:', response.status);
+            const data = await response.json();
+            console.log('Backend test response data:', data);
+            return true;
+        } catch (error) {
+            console.error('Backend connection test failed:', error);
+            return false;
+        }
+    }
+
+    // Copy to clipboard function
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showAlert('Copied to clipboard!', 'success');
+        });
+    }
+
+    // Loading modal functions
+    function showLoadingModal(title, message) {
+        // Remove existing loading modal if any
+        const existingModal = document.getElementById('loadingModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Create loading modal
+        const modalHTML = `
+            <div class="modal fade" id="loadingModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg">
+                        <div class="modal-body text-center p-5">
+                            <div class="mb-4">
+                                <div class="spinner-border text-primary" style="width: 4rem; height: 4rem;" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <h4 class="mb-3 text-cognizant-navy" id="loadingTitle">${title}</h4>
+                            <p class="text-gray-600 mb-0" id="loadingMessage">${message}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = new bootstrap.Modal(document.getElementById('loadingModal'));
+        modal.show();
+    }
+    
+    function updateLoadingModal(title, message) {
+        const titleEl = document.getElementById('loadingTitle');
+        const messageEl = document.getElementById('loadingMessage');
+        if (titleEl) titleEl.textContent = title;
+        if (messageEl) messageEl.textContent = message;
+    }
+    
+    function hideLoadingModal() {
+        const modal = document.getElementById('loadingModal');
+        if (modal) {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+                // Remove modal from DOM after hide animation
+                setTimeout(() => {
+                    if (modal.parentNode) {
+                        modal.remove();
+                    }
+                }, 300);
+            }
+        }
+    }
+
+    // Notification queue system
+    let notificationQueue = [];
+    let isShowingNotification = false;
+    
+    // Show alert function with queuing
+    function showAlert(message, type) {
+        notificationQueue.push({ message, type });
+        processNotificationQueue();
+    }
+    
+    function processNotificationQueue() {
+        if (isShowingNotification || notificationQueue.length === 0) {
+            return;
+        }
+        
+        isShowingNotification = true;
+        const { message, type } = notificationQueue.shift();
+        
+        // Create notification container if it doesn't exist
+        let container = document.getElementById('notification-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notification-container';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 10000;
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                pointer-events: none;
+            `;
+            document.body.appendChild(container);
+        }
+        
+        // Create alert element
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+        alertDiv.style.cssText = `
+            min-width: 400px;
+            max-width: 600px;
+            margin: 0;
+            pointer-events: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: none;
+            animation: slideInDown 0.3s ease-out;
+        `;
+        alertDiv.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        // Add slide animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes slideOutUp {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-20px);
+                }
+            }
+        `;
+        if (!document.head.querySelector('style[data-notifications]')) {
+            style.setAttribute('data-notifications', 'true');
+            document.head.appendChild(style);
+        }
+
+        container.appendChild(alertDiv);
+        
+        // Auto remove function
+        const removeAlert = () => {
+            if (alertDiv.parentNode) {
+                alertDiv.style.animation = 'slideOutUp 0.3s ease-in';
+                setTimeout(() => {
+                    if (alertDiv.parentNode) {
+                        alertDiv.remove();
+                    }
+                    isShowingNotification = false;
+                    
+                    // Process next notification in queue
+                    setTimeout(() => processNotificationQueue(), 100);
+                }, 300);
+            }
+        };
+        
+        // Handle manual close
+        const closeBtn = alertDiv.querySelector('.btn-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', removeAlert);
+        }
+        
+        // Auto remove after 4 seconds
+        setTimeout(removeAlert, 4000);
+    }
+
+    // Event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize Web3 on page load
+        initializeWeb3();
+        
+        // Test backend connection
+        testBackendConnection();
+
+        // Add event listeners to record buttons
+        document.querySelectorAll('.record-blockchain-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const donationId = this.dataset.donationId;
+                const donorName = this.dataset.donorName;
+                const amount = this.dataset.amount;
+                const purpose = this.dataset.purpose;
+                const upiRef = this.dataset.upiRef;
+
+                recordOnBlockchain(donationId, donorName, amount, purpose, upiRef);
+            });
+        });
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // Include Web3 library
+    if (!window.Web3) {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js';
+        document.head.appendChild(script);
+    }
+
+    // Apply proper table styling based on theme for donation management
+    function applyDonationManagementTableTheme() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const tableRows = document.querySelectorAll('#donation-management-table tbody tr');
+        const tableCells = document.querySelectorAll('#donation-management-table tbody td');
+        
+        if (theme === 'dark') {
+            // Dark mode styling
+            tableRows.forEach(row => {
+                row.style.setProperty('background-color', '#1f1f1f', 'important');
+                row.style.setProperty('background', '#1f1f1f', 'important');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.setProperty('background-color', '#1f1f1f', 'important');
+                cell.style.setProperty('background', '#1f1f1f', 'important');
+                cell.style.setProperty('color', '#e1e1e1', 'important');
+            });
+        } else {
+            // Light mode styling - remove forced styles to let CSS take over
+            tableRows.forEach(row => {
+                row.style.removeProperty('background-color');
+                row.style.removeProperty('background');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.removeProperty('background-color');
+                cell.style.removeProperty('background');
+                cell.style.removeProperty('color');
+            });
+        }
+    }
+
+    // Run on page load and theme change
+    document.addEventListener('DOMContentLoaded', applyDonationManagementTableTheme);
+
+    // Listen for theme changes
+    new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                applyDonationManagementTableTheme();
+            }
+        });
+    }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,54 @@
+.teaser-img {
+    padding: 2rem 1.5rem 1rem !important;
+}
+
+.object-image-right img {
+    object-position: 75%;
+}
+
+/* image modal css update */
+.imagemodal .modal .modal-dialog {
+    --bs-modal-width: 1140px;
+
+    margin-top: 0;
+    border: 0;
+}
+
+.imagemodal .modal .modal-content {
+    background-color: var(--white) !important;
+}
+
+@media (min-width: 768px) {
+    .imagemodal .modal .modal-body {
+        padding: 2rem !important;
+    }
+}
+
+.imagemodal .modal .modal-body {
+    padding-top: 2rem !important;
+}
+
+.imagemodal .imgwrapper img {
+    cursor: pointer;
+}
+
+.imagemodal .modal .modal-body img {
+    padding: 0 !important;
+}
+
+.image.tiny {
+    width: 3rem;
+}
+
+.image.medium {
+    width: 6rem;
+}
+
+.flex-equalheight.image-container .image-wrapper {
+    height: 100%;
+}
+
+.image.bd-gray-light {
+    border: 1px solid var(--gray-light);
+    padding: 1rem;
+}

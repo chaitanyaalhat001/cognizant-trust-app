@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Dashboard - CognizantTrust{% endblock %}
+
+{% block content %}
+<div class="hero-gradient text-center py-4">
+    <div class="container">
+        <h1 class="display-5 fw-bold mb-2">Welcome, {{ user.get_full_name|default:user.username }}!</h1>
+        <p class="lead mb-0">Thank you for being part of our transparent donation community</p>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- Quick Stats Row -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-success mb-2">
+                        <i class="fas fa-hand-holding-heart"></i>
+                    </div>
+                    <h5 class="card-title">Total Donated</h5>
+                    <h3 class="text-success">{{ total_donated|inr_format }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-primary mb-2">
+                        <i class="fas fa-gift"></i>
+                    </div>
+                    <h5 class="card-title">Donations Made</h5>
+                    <h3 class="text-primary">{{ donation_count }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-success mb-2">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h5 class="card-title">Recorded on Blockchain</h5>
+                    <h3 class="text-success">{{ recorded_donations }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-warning mb-2">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h5 class="card-title">Pending</h5>
+                    <h3 class="text-warning">{{ pending_donations }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-cognizant-gradient text-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'donations:user_donate' %}" class="btn btn-cognizant-primary btn-lg w-100">
+                                <i class="fas fa-heart mb-2 d-block"></i>
+                                Make Donation
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'donations:user_profile' %}" class="btn btn-outline-primary btn-lg w-100">
+                                <i class="fas fa-user-edit mb-2 d-block"></i>
+                                Edit Profile
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'donations:spending_transparency' %}" class="btn btn-outline-success btn-lg w-100">
+                                <i class="fas fa-eye mb-2 d-block"></i>
+                                View Transparency
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'donations:public_audit' %}" class="btn btn-outline-info btn-lg w-100">
+                                <i class="fas fa-search mb-2 d-block"></i>
+                                Public Audit
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Donation History -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>Your Donation History</h5>
+                    {% if user_donations %}
+                        <span class="badge bg-primary">{{ donation_count }} total</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if user_donations %}
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="donation-history-table">
+                                <thead class="bg-secondary">
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Amount</th>
+                                        <th>Purpose</th>
+                                        <th>Status</th>
+                                        <th>Receipt</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for donation in user_donations %}
+                                    <tr>
+                                        <td>{{ donation.timestamp|date:"M d, Y" }}</td>
+                                        <td class="fw-bold text-success">{{ donation.amount|inr_format }}</td>
+                                        <td>{{ donation.purpose|truncatechars:40 }}</td>
+                                        <td>
+                                            {% if donation.blockchain_status == 'recorded' %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Recorded
+                                                </span>
+                                            {% elif donation.blockchain_status == 'pending' %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-clock me-1"></i>Pending
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-times-circle me-1"></i>Failed
+                                                </span>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            {% if donation.blockchain_status == 'recorded' %}
+                                                <a href="{% url 'donations:download_receipt' donation.id %}" 
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download me-1"></i>PDF
+                                                </a>
+                                            {% else %}
+                                                <span class="text-muted">N/A</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        {% if donation_count > 10 %}
+                            <div class="text-center mt-3">
+                                <small class="text-muted">Showing recent 10 donations</small>
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-heart-broken fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">No donations yet</h5>
+                            <p class="text-muted">Start making a difference today!</p>
+                            <a href="{% url 'donations:user_donate' %}" class="btn btn-cognizant-primary">
+                                <i class="fas fa-heart me-2"></i>Make Your First Donation
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile & Trust Transparency -->
+        <div class="col-lg-4">
+            <!-- Profile Summary -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-user me-2"></i>Profile Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-cognizant-gradient rounded-circle d-flex align-items-center justify-content-center me-3" 
+                             style="width: 50px; height: 50px;">
+                            <i class="fas fa-user fa-lg text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0">{{ user.get_full_name|default:user.username }}</h6>
+                            <small class="text-muted">{{ user.email }}</small>
+                        </div>
+                    </div>
+                    
+                    {% if donor_profile.phone_number %}
+                        <p class="mb-2"><i class="fas fa-phone me-2 text-muted"></i>{{ donor_profile.phone_number }}</p>
+                    {% endif %}
+                    
+                    {% if donor_profile.city and donor_profile.state %}
+                        <p class="mb-2"><i class="fas fa-map-marker-alt me-2 text-muted"></i>{{ donor_profile.city }}, {{ donor_profile.state }}</p>
+                    {% endif %}
+                    
+                    {% if donor_profile.pan_number %}
+                        <p class="mb-2"><i class="fas fa-id-card me-2 text-muted"></i>PAN: {{ donor_profile.pan_number }}</p>
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'donations:user_profile' %}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-edit me-1"></i>Update Profile
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trust Transparency -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="fas fa-chart-pie me-2"></i>How We Use Donations</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_spending %}
+                        {% for spending in recent_spending %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <small class="fw-bold">{{ spending.get_category_display }}</small>
+                                    <br>
+                                    <small class="text-muted">{{ spending.title|truncatechars:30 }}</small>
+                                </div>
+                                <span class="badge bg-success">{{ spending.amount|inr_format }}</span>
+                            </div>
+                        {% endfor %}
+                        <div class="text-center mt-3">
+                            <a href="{% url 'donations:spending_transparency' %}" class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Full Transparency
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-info-circle fa-2x text-muted mb-2"></i>
+                            <p class="text-muted small">No spending records yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Apply proper table styling based on theme for donation history
+    function applyDonationTableTheme() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const tableRows = document.querySelectorAll('#donation-history-table tbody tr');
+        const tableCells = document.querySelectorAll('#donation-history-table tbody td');
+        
+        if (theme === 'dark') {
+            // Dark mode styling
+            tableRows.forEach(row => {
+                row.style.setProperty('background-color', '#1f1f1f', 'important');
+                row.style.setProperty('background', '#1f1f1f', 'important');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.setProperty('background-color', '#1f1f1f', 'important');
+                cell.style.setProperty('background', '#1f1f1f', 'important');
+                cell.style.setProperty('color', '#e1e1e1', 'important');
+            });
+        } else {
+            // Light mode styling - remove forced styles to let CSS take over
+            tableRows.forEach(row => {
+                row.style.removeProperty('background-color');
+                row.style.removeProperty('background');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.removeProperty('background-color');
+                cell.style.removeProperty('background');
+                cell.style.removeProperty('color');
+            });
+        }
+    }
+
+    // Run on page load and theme change
+    document.addEventListener('DOMContentLoaded', applyDonationTableTheme);
+
+    // Listen for theme changes
+    new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                applyDonationTableTheme();
+            }
+        });
+    }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+</script>
+{% endblock %} 

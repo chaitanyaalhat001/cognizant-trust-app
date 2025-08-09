@@ -1,0 +1,683 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+
+{% block title %}Verified Social Welfare Spending - CognizantTrust{% endblock %}
+
+{% block content %}
+<style>
+    /* Ensure consistent card styling */
+    .stats-card .stats-number {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+        font-size: 2.2rem !important;
+    }
+    
+    .stats-card .stats-number.currency-amount {
+        font-size: 1.4rem !important;
+        padding: 0 10px;
+    }
+    
+    .stats-card {
+        min-width: 180px;
+        overflow: visible;
+        padding: var(--space-lg) var(--space-sm) !important;
+    }
+    
+    /* Table styling for better readability */
+    .table-container {
+        border-radius: 20px;
+        overflow: hidden;
+        position: relative;
+    }
+    
+    .table-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 6px;
+        background: linear-gradient(90deg, #2563eb 0%, #00d4ff 25%, #7c3aed 50%, #ff6b9d 75%, #f39c12 100%);
+        z-index: 1;
+    }
+    
+    /* Table headers - DARK MODE COMPATIBLE */
+    .table th {
+        font-weight: 700;
+        border: none;
+        padding: 1.25rem 1rem;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        position: relative;
+    }
+    
+    /* Table cells - DARK MODE COMPATIBLE */
+    .table td {
+        padding: 1.25rem 1rem;
+        vertical-align: middle;
+    }
+    
+    /* Table rows - DARK MODE COMPATIBLE */
+    .table tbody tr {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left: 4px solid transparent;
+    }
+    
+    .table tbody tr:hover {
+        transform: translateY(-2px) scale(1.005);
+    }
+    
+    /* LIGHT MODE ONLY STYLES */
+    html:not([data-theme="dark"]) .table th {
+        background: linear-gradient(135deg, #2563eb 0%, #1e40af 50%, #7c3aed 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    }
+    
+    html:not([data-theme="dark"]) .table th::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, #00d4ff, #ff6b9d, #f39c12);
+        border-radius: 0 0 8px 8px;
+    }
+    
+    html:not([data-theme="dark"]) .table td {
+        border-color: #e5e7eb;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    html:not([data-theme="dark"]) .table tbody tr:hover {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15);
+        border-left: 4px solid var(--cognizant-orange);
+    }
+    
+    .amount-display {
+        font-size: 1.25rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #f39c12, #ff6b9d);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        border: 2px solid;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        white-space: nowrap;
+    }
+    
+    .status-recorded {
+        background: linear-gradient(135deg, #10b981, #34d399);
+        color: white;
+        border-color: #10b981;
+        animation: pulse-success 2s infinite;
+    }
+    
+    .status-pending {
+        background: linear-gradient(135deg, #f59e0b, #f97316);
+        color: white;
+        border-color: #f59e0b;
+        animation: pulse-warning 2s infinite;
+    }
+    
+    @keyframes pulse-success {
+        0%, 100% { box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
+        50% { box-shadow: 0 4px 20px rgba(16, 185, 129, 0.5); }
+    }
+    
+    @keyframes pulse-warning {
+        0%, 100% { box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3); }
+        50% { box-shadow: 0 4px 20px rgba(245, 158, 11, 0.5); }
+    }
+    
+    .category-badge {
+        padding: 0.5rem 0.875rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        text-transform: capitalize;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        border: 2px solid;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+    
+    .category-badge:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    
+    /* Enhanced Category-specific colors with gradients */
+    .category-education { 
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(59, 130, 246, 0.05)); 
+        color: #1e40af; 
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+    .category-healthcare { 
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); 
+        color: #059669; 
+        border-color: rgba(34, 197, 94, 0.3);
+    }
+    .category-food_distribution { 
+        background: linear-gradient(135deg, rgba(251, 146, 60, 0.15), rgba(251, 146, 60, 0.05)); 
+        color: #c2410c; 
+        border-color: rgba(251, 146, 60, 0.3);
+    }
+    .category-shelter { 
+        background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(168, 85, 247, 0.05)); 
+        color: #6b21a8; 
+        border-color: rgba(168, 85, 247, 0.3);
+    }
+    .category-disaster_relief { 
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05)); 
+        color: #b91c1c; 
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    .category-elderly_care { 
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(99, 102, 241, 0.05)); 
+        color: #4338ca; 
+        border-color: rgba(99, 102, 241, 0.3);
+    }
+    .category-child_welfare { 
+        background: linear-gradient(135deg, rgba(236, 72, 153, 0.15), rgba(236, 72, 153, 0.05)); 
+        color: #be185d; 
+        border-color: rgba(236, 72, 153, 0.3);
+    }
+    .category-skill_development { 
+        background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(14, 165, 233, 0.05)); 
+        color: #0369a1; 
+        border-color: rgba(14, 165, 233, 0.3);
+    }
+    .category-sanitation { 
+        background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05)); 
+        color: #047857; 
+        border-color: rgba(34, 197, 94, 0.3);
+    }
+    .category-other { 
+        background: linear-gradient(135deg, rgba(107, 114, 128, 0.15), rgba(107, 114, 128, 0.05)); 
+        color: #374151; 
+        border-color: rgba(107, 114, 128, 0.3);
+    }
+    
+    .etherscan-link {
+        background: linear-gradient(135deg, #2563eb, #7c3aed);
+        color: white;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 25px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+    
+    .etherscan-link:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .activity-description {
+        max-width: 320px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 0.875rem;
+        color: #64748b;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        padding: 0.375rem 0.75rem;
+        border-radius: 12px;
+        border-left: 3px solid rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+    }
+    
+    .activity-description:hover {
+        background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+        border-left-color: var(--cognizant-blue);
+        cursor: help;
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .table-responsive {
+            border-radius: var(--radius-lg);
+        }
+        .table th, .table td {
+            padding: 0.75rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .activity-description {
+            max-width: 200px;
+        }
+        .category-badge {
+            padding: 0.375rem 0.625rem;
+            font-size: 0.8rem;
+            gap: 0.25rem;
+        }
+        .status-badge {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+            gap: 0.25rem;
+        }
+        .etherscan-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .table-container {
+            margin: 0 -15px;
+            border-radius: 15px;
+        }
+        .table th:nth-child(2), 
+        .table td:nth-child(2) {
+            display: none; /* Hide amount on very small screens */
+        }
+        .activity-description {
+            max-width: 150px;
+            font-size: 0.8rem;
+            padding: 0.375rem;
+        }
+        .category-badge {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            gap: 0.2rem;
+        }
+        .status-badge {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            gap: 0.2rem;
+        }
+        .etherscan-link {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+    }
+</style>
+
+<!-- Navigation Breadcrumb -->
+<section class="py-3 bg-gray-50">
+    <div class="container">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'donations:public_audit' %}" class="text-cognizant-blue">
+                        <i class="fas fa-shield-alt me-1"></i>
+                        Public Audit Trail
+                    </a>
+                </li>
+                <li class="breadcrumb-item active" aria-current="page">Verified Spending</li>
+            </ol>
+        </nav>
+    </div>
+</section>
+
+<!-- Hero Section -->
+<section class="py-5 bg-cognizant-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center">
+                    <div class="cognizant-logo-simple me-3"></div>
+                    <div>
+                        <h1 class="h2 fw-bold text-cognizant-navy mb-1">Verified Social Welfare Spending</h1>
+                        <p class="text-gray-600 mb-0">Transparent tracking of welfare activities with blockchain verification</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'donations:home' %}" class="btn btn-cognizant-primary me-2">
+                    <i class="fas fa-heart me-1"></i>
+                    Make a Donation
+                </a>
+                <a href="{% url 'donations:public_audit' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left me-1"></i>
+                    Back to Audit
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Overview -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-6 col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-green">{{ total_verified_spendings }}</div>
+                    <div class="stats-label">Welfare Activities</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-orange">{{ total_spent_amount|inr_format }}</div>
+                    <div class="stats-label">Total Spent</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">{{ recorded_spendings_count }}</div>
+                    <div class="stats-label">Blockchain Recorded</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">100%</div>
+                    <div class="stats-label">Transparency</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Spending Table -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="text-cognizant-navy mb-0">
+                <i class="fas fa-hands-helping me-2 text-cognizant-orange"></i>
+                All Welfare Activities
+            </h3>
+            <div class="d-flex gap-2">
+                <button class="btn btn-cognizant-secondary btn-sm" onclick="window.location.reload()">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </button>
+                <a href="https://sepolia.etherscan.io/address/0x732F8A850d4Ad351858FAcCb4e207C42bEA88C91" target="_blank" class="btn btn-outline-primary btn-sm">
+                    <i class="fab fa-ethereum me-1"></i>
+                    View Contract
+                </a>
+            </div>
+        </div>
+
+        {% if spendings %}
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="verified-spending-table">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Amount</th>
+                            <th>Category</th>
+                            <th>Beneficiaries</th>
+                            <th>Location</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Blockchain</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for spending in spendings %}
+                        <tr>
+                            <td>
+                                <div>
+                                    <div class="fw-semibold text-cognizant-navy">{{ spending.title }}</div>
+                                    <div class="activity-description" title="{{ spending.description }}">
+                                        {{ spending.description }}
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="amount-display">{{ spending.amount|inr_format }}</span>
+                            </td>
+                            <td>
+                                <span class="category-badge category-{{ spending.category }}">
+                                    {% if spending.category == 'education' %}<i class="fas fa-graduation-cap me-1"></i>
+                                    {% elif spending.category == 'healthcare' %}<i class="fas fa-heartbeat me-1"></i>
+                                    {% elif spending.category == 'food_distribution' %}<i class="fas fa-utensils me-1"></i>
+                                    {% elif spending.category == 'shelter' %}<i class="fas fa-home me-1"></i>
+                                    {% elif spending.category == 'disaster_relief' %}<i class="fas fa-hands-helping me-1"></i>
+                                    {% elif spending.category == 'elderly_care' %}<i class="fas fa-user-friends me-1"></i>
+                                    {% elif spending.category == 'child_welfare' %}<i class="fas fa-child me-1"></i>
+                                    {% elif spending.category == 'skill_development' %}<i class="fas fa-tools me-1"></i>
+                                    {% elif spending.category == 'sanitation' %}<i class="fas fa-tint me-1"></i>
+                                    {% else %}<i class="fas fa-circle me-1"></i>
+                                    {% endif %}
+                                    {{ spending.get_category_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="text-gray-700">{{ spending.beneficiaries }}</span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-map-marker-alt text-gray-400 me-1"></i>
+                                    <span class="text-gray-700">{{ spending.location }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ spending.spent_date|date:"M d, Y" }}</div>
+                                <small class="text-gray-500">{{ spending.spent_date|time:"g:i A" }}</small>
+                            </td>
+                            <td>
+                                {% if spending.is_recorded_on_blockchain %}
+                                    <span class="status-badge status-recorded">
+                                        <i class="fas fa-check me-1"></i>
+                                        Verified
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-pending">
+                                        <i class="fas fa-clock me-1"></i>
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if spending.blockchain_tx_hash %}
+                                                                        <a href="https://sepolia.etherscan.io/tx/{{ spending.blockchain_tx_hash|add_hex_prefix }}"
+                                       target="_blank" class="etherscan-link">
+                                        <i class="fab fa-ethereum me-1"></i>
+                                        View Transaction
+                                    </a>
+                                {% else %}
+                                    <span class="text-gray-400">
+                                        <i class="fas fa-minus"></i>
+                                        Not recorded
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-4">
+                <i class="fas fa-hands-helping fa-3x text-gray-300"></i>
+            </div>
+            <h4 class="text-gray-500 mb-2">No Welfare Activities Yet</h4>
+            <p class="text-gray-400 mb-4">Welfare spending activities will appear here once recorded.</p>
+            <a href="{% url 'donations:home' %}" class="btn btn-cognizant-primary">
+                <i class="fas fa-heart me-1"></i>
+                Support Our Cause
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Category Legend -->
+{% if spendings %}
+<section class="py-4 bg-gray-50">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <h5 class="text-cognizant-navy mb-3 text-center">Welfare Categories</h5>
+                <div class="row g-2">
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-education d-inline-block mb-1">
+                                <i class="fas fa-graduation-cap me-1"></i>Education
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-healthcare d-inline-block mb-1">
+                                <i class="fas fa-heartbeat me-1"></i>Healthcare
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-food_distribution d-inline-block mb-1">
+                                <i class="fas fa-utensils me-1"></i>Food
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-shelter d-inline-block mb-1">
+                                <i class="fas fa-home me-1"></i>Shelter
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-disaster_relief d-inline-block mb-1">
+                                <i class="fas fa-hands-helping me-1"></i>Disaster
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <div class="text-center p-2">
+                            <div class="category-badge category-other d-inline-block mb-1">
+                                <i class="fas fa-circle me-1"></i>Other
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Blockchain Info -->
+<section class="py-4 {% if not spendings %}bg-gray-50{% endif %}">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            <i class="fab fa-ethereum fa-2x text-cognizant-blue"></i>
+                        </div>
+                        <h5 class="text-cognizant-navy mb-2">Ultra-Minimal Blockchain Recording</h5>
+                        <p class="text-gray-600 mb-3">
+                            Welfare spending is recorded using our optimized smart contract with 95% reduced gas costs. 
+                            Only essential data (amount, category, timestamp) is stored on-chain for maximum efficiency.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="https://sepolia.etherscan.io/address/0x732F8A850d4Ad351858FAcCb4e207C42bEA88C91" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>
+                                View Spending Contract
+                            </a>
+                            <a href="{% url 'donations:public_audit' %}" class="btn btn-cognizant-secondary btn-sm">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Full Audit Trail
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Add fade-in animation for table rows
+document.addEventListener('DOMContentLoaded', function() {
+    const rows = document.querySelectorAll('tbody tr');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            row.style.transition = 'all 0.3s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Add tooltip functionality for truncated descriptions
+    const descriptions = document.querySelectorAll('.activity-description');
+    descriptions.forEach(desc => {
+        if (desc.scrollWidth > desc.clientWidth) {
+            desc.style.cursor = 'help';
+        }
+    });
+
+    // Apply proper table styling based on theme for verified spending
+    function applyVerifiedSpendingTableTheme() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const tableRows = document.querySelectorAll('#verified-spending-table tbody tr');
+        const tableCells = document.querySelectorAll('#verified-spending-table tbody td');
+        
+        if (theme === 'dark') {
+            // Dark mode styling
+            tableRows.forEach(row => {
+                row.style.setProperty('background-color', '#1f1f1f', 'important');
+                row.style.setProperty('background', '#1f1f1f', 'important');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.setProperty('background-color', '#1f1f1f', 'important');
+                cell.style.setProperty('background', '#1f1f1f', 'important');
+                cell.style.setProperty('color', '#e1e1e1', 'important');
+            });
+        } else {
+            // Light mode styling - remove forced styles to let CSS take over
+            tableRows.forEach(row => {
+                row.style.removeProperty('background-color');
+                row.style.removeProperty('background');
+            });
+            
+            tableCells.forEach(cell => {
+                cell.style.removeProperty('background-color');
+                cell.style.removeProperty('background');
+                cell.style.removeProperty('color');
+            });
+        }
+    }
+
+    // Run on page load and theme change
+    document.addEventListener('DOMContentLoaded', applyVerifiedSpendingTableTheme);
+
+    // Listen for theme changes
+    new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+                applyVerifiedSpendingTableTheme();
+            }
+        });
+    }).observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+});
+</script>
+{% endblock %} 

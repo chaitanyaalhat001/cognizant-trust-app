@@ -1,0 +1,466 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+
+{% block title %}Public Audit Trail - CognizantTrust{% endblock %}
+
+{% block content %}
+<style>
+    /* Fix for public audit stats cards - keep numbers on one line */
+    .stats-card .stats-number {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+        font-size: 2.2rem !important; /* Slightly smaller to fit better */
+    }
+    
+    /* Extra small adjustment for longer currency amounts */
+    .stats-card .stats-number.currency-amount {
+        font-size: 1.4rem !important; /* Even smaller to fit full numbers */
+        padding: 0 10px; /* Add horizontal padding */
+    }
+    
+    /* Ensure cards have enough width and flexibility */
+    .stats-card {
+        min-width: 180px; /* Much wider to accommodate long numbers */
+        overflow: visible; /* Allow content to be visible */
+        padding: var(--space-lg) var(--space-sm) !important; /* Reduce horizontal padding */
+    }
+    
+    /* Public audit specific layout - dark mode handled globally */
+    
+    /* Remove ellipsis - show full numbers */
+    .stats-card .stats-number {
+        overflow: visible;
+        text-overflow: clip;
+        max-width: 100%;
+    }
+    
+    /* Medium screens - 3 cards per row */
+    @media (max-width: 1199px) and (min-width: 768px) {
+        .stats-card {
+            min-width: 160px;
+        }
+        .stats-card .stats-number.currency-amount {
+            font-size: 1.3rem !important;
+        }
+    }
+    
+    /* Small screens - mobile */
+    @media (max-width: 767px) {
+        .stats-card .stats-number {
+            font-size: 1.4rem !important;
+        }
+        .stats-card .stats-number.currency-amount {
+            font-size: 1.2rem !important; /* Smaller for mobile to fit full numbers */
+            padding: 0 5px; /* Less padding on mobile */
+        }
+        .stats-card {
+            min-width: 130px; /* Smaller min-width for mobile */
+            padding: var(--space-md) var(--space-xs) !important;
+        }
+    }
+    
+    /* Extra small screens */
+    @media (max-width: 480px) {
+        .stats-card .stats-number.currency-amount {
+            font-size: 1.0rem !important; /* Even smaller for very small screens */
+        }
+        .stats-card {
+            min-width: 120px;
+        }
+    }
+</style>
+<!-- Hero Section -->
+<section class="py-5 bg-cognizant-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center">
+                                    <div class="cognizant-logo-simple me-3"></div>
+                    <div>
+                        <h1 class="h2 fw-bold text-cognizant-navy mb-1">Public Audit Trail</h1>
+                        <p class="text-gray-600 mb-0">Transparent blockchain verification of donations and welfare spending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'donations:home' %}" class="btn btn-cognizant-primary">
+                    <i class="fas fa-heart me-1"></i>
+                    Make a Donation
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Overview -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-3">
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-green">{{ total_verified_donations }}</div>
+                    <div class="stats-label">Verified Donations</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-blue">{{ total_donated_amount|inr_format }}</div>
+                    <div class="stats-label">Total Donated</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">{{ total_verified_spendings }}</div>
+                    <div class="stats-label">Welfare Activities</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-orange">{{ total_spent_amount|inr_format }}</div>
+                    <div class="stats-label">Total Spent</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-green">{{ remaining_balance|inr_format }}</div>
+                    <div class="stats-label">Remaining Balance</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-4 col-xl-2">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">100%</div>
+                    <div class="stats-label">Transparency Score</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blockchain Verification Info -->
+<section class="py-4">
+    <div class="container">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fab fa-ethereum fa-2x text-cognizant-blue"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-cognizant-blue">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    Blockchain Verification
+                                </h5>
+                                <p class="text-gray-600 mb-0">All transactions below are permanently recorded on the Ethereum Sepolia testnet</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="d-flex gap-2 justify-content-lg-end">
+                            <button class="btn btn-cognizant-secondary btn-sm" onclick="window.location.reload()">
+                                <i class="fas fa-sync-alt me-1"></i>
+                                Refresh
+                            </button>
+                            <a href="https://sepolia.etherscan.io/" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>
+                                Etherscan
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Blockchain Info -->
+                <div class="mt-3 pt-3 border-top">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-cube text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Network</small>
+                                    <span class="small fw-bold">Ethereum Sepolia</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-file-contract text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Smart Contract</small>
+                                    <code class="small">{{ contract_address|default:"0x1b8DC2B5...5621710" }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Last Updated</small>
+                                    <span class="small">{% now "M d, Y H:i" %}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-gas-pump text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Gas Optimized</small>
+                                    <span class="small fw-bold">95% Savings</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- Summary Cards -->
+<section class="py-5">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Donations Summary -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-cognizant-light rounded-circle p-3 me-3">
+                                <i class="fas fa-heart fa-lg text-cognizant-blue"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-cognizant-navy mb-1">
+                                    <i class="fas fa-shield-alt me-2"></i>
+                                    Donation Verification
+                                </h4>
+                                <p class="text-gray-600 mb-0">Blockchain-verified donations</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">
+                            <strong>{{ total_verified_donations }}</strong> donations totaling 
+                            <strong class="text-cognizant-blue">{{ total_donated_amount|inr_format }}</strong> 
+                            have been verified and permanently recorded on the Ethereum blockchain.
+                        </p>
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="h5 text-cognizant-green mb-1">{{ total_verified_donations }}</div>
+                                <small class="text-gray-500">Verified Donations</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h5 text-cognizant-blue mb-1">{{ total_donated_amount|inr_format }}</div>
+                                <small class="text-gray-500">Total Amount</small>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'donations:verified_donations' %}" class="btn btn-cognizant-primary">
+                                <i class="fas fa-list me-2"></i>
+                                View All Donations
+                            </a>
+                            <p class="small text-gray-500 mt-2 mb-0">
+                                <i class="fab fa-ethereum me-1"></i>
+                                Blockchain Verified
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spending Summary -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-cognizant-light rounded-circle p-3 me-3">
+                                <i class="fas fa-hands-helping fa-lg text-cognizant-orange"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-cognizant-navy mb-1">
+                                    <i class="fas fa-heart me-2"></i>
+                                    Welfare Activities
+                                </h4>
+                                <p class="text-gray-600 mb-0">Social welfare expenditures</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mb-3">
+                            <strong>{{ total_verified_spendings }}</strong> welfare activities totaling 
+                            <strong class="text-cognizant-orange">{{ total_spent_amount|inr_format }}</strong> 
+                            have been executed and recorded using our ultra-minimal blockchain contract.
+                        </p>
+                        <div class="row text-center mb-3">
+                            <div class="col-6">
+                                <div class="h5 text-cognizant-blue mb-1">{{ total_verified_spendings }}</div>
+                                <small class="text-gray-500">Welfare Activities</small>
+                            </div>
+                            <div class="col-6">
+                                <div class="h5 text-cognizant-orange mb-1">{{ total_spent_amount|inr_format }}</div>
+                                <small class="text-gray-500">Amount Spent</small>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <a href="{% url 'donations:verified_spending' %}" class="btn btn-cognizant-primary">
+                                <i class="fas fa-hands-helping me-2"></i>
+                                View All Activities
+                            </a>
+                            <p class="small text-gray-500 mt-2 mb-0">
+                                <i class="fas fa-rocket me-1"></i>
+                                95% Gas Savings
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Financial Overview -->
+<section class="py-4 bg-gray-50">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <h4 class="text-cognizant-navy mb-3">
+                            <i class="fas fa-chart-pie me-2"></i>
+                            Financial Transparency Overview
+                        </h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="h3 text-cognizant-blue mb-1">{{ total_donated_amount|inr_format }}</div>
+                                    <div class="text-gray-600">Total Donations</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="h3 text-cognizant-orange mb-1">{{ total_spent_amount|inr_format }}</div>
+                                    <div class="text-gray-600">Amount Utilized</div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <div class="h3 text-cognizant-green mb-1">{{ remaining_balance|inr_format }}</div>
+                                    <div class="text-gray-600">Available Balance</div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600 mt-3 mb-3">
+                            Every transaction is permanently recorded on the Ethereum blockchain, ensuring 100% transparency and immutability of all financial activities.
+                        </p>
+                        <div class="d-flex justify-content-center gap-3">
+                            <a href="https://sepolia.etherscan.io/" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-external-link-alt me-1"></i>
+                                View on Etherscan
+                            </a>
+                            <a href="{% url 'donations:home' %}" class="btn btn-cognizant-primary btn-sm">
+                                <i class="fas fa-heart me-1"></i>
+                                Make a Donation
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+// Enhanced showAlert function with queue management and improved styling
+function showAlert(message, type = 'success') {
+    // Initialize notification queue if not exists
+    if (!window.notificationQueue) {
+        window.notificationQueue = [];
+        window.activeNotifications = [];
+    }
+    
+    // Add to queue
+    window.notificationQueue.push({ message, type });
+    
+    // Process queue if no active notifications
+    if (window.activeNotifications.length === 0) {
+        displayNotification();
+    }
+}
+
+function displayNotification() {
+    if (window.notificationQueue.length === 0) return;
+    
+    const { message, type } = window.notificationQueue.shift();
+    
+    // Create backdrop
+    const backdrop = document.createElement('div');
+    backdrop.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.3);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+    `;
+    document.body.appendChild(backdrop);
+    
+    // Create alert
+    const alertDiv = document.createElement('div');
+    const alertClass = type === 'error' ? 'alert-danger' : 'alert-success';
+    const iconClass = type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+    
+    alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed start-50 translate-middle shadow-lg`;
+    alertDiv.style.cssText = `
+        top: 50%;
+        z-index: 1050;
+        min-width: 400px;
+        max-width: 90vw;
+        border: none;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3) !important;
+    `;
+    
+    alertDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="fas ${iconClass} me-3" style="font-size: 1.2rem;"></i>
+            <div class="flex-grow-1">${message}</div>
+            <button type="button" class="btn-close" aria-label="Close"></button>
+        </div>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    // Add to active notifications
+    window.activeNotifications.push({ alertDiv, backdrop });
+    
+    // Animation
+    alertDiv.style.animation = 'slideIn 0.4s ease-out';
+    
+    const removeAlert = () => {
+        alertDiv.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            if (alertDiv.parentNode) alertDiv.remove();
+            if (backdrop.parentNode) backdrop.remove();
+            
+            // Remove from active notifications
+            window.activeNotifications = window.activeNotifications.filter(n => n.alertDiv !== alertDiv);
+            
+            // Show next notification in queue
+            if (window.notificationQueue.length > 0) {
+                const next = window.notificationQueue.shift();
+                setTimeout(() => displayNotification(), 200);
+            }
+        }, 300);
+    };
+    
+    // Click backdrop to close
+    backdrop.addEventListener('click', removeAlert);
+    
+    // Click close button
+    alertDiv.querySelector('.btn-close').addEventListener('click', removeAlert);
+    
+    // Auto remove after 5 seconds
+    setTimeout(removeAlert, 5000);
+}
+</script>
+{% endblock %} 

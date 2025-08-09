@@ -1,0 +1,395 @@
+/* stylelint-disable property-no-vendor-prefix */
+:root {
+  --form-columns: 1;
+  --form-max-width: 100%;
+  --form-grid-gap: 0 20px;
+  --form-input-border: 0.05rem solid var(--gray-medium);
+  --form-input-background-color: var(--gray-lightest);
+}
+
+main .form-container {
+  padding: 3rem 0;
+}
+
+main .form-container > .form-wrapper, main .form-container > .fragment-wrapper {
+  margin: 0 auto;
+  max-width: 75pc;
+}
+
+main .form > div:not(:first-child) {
+  display: none;
+}
+
+main .form {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+
+main .form .form-section {
+  display: grid;
+  grid-template-columns: repeat(var(--form-columns), minmax(0, 1fr));
+  gap: var(--form-grid-gap);
+  padding: 10px 0 0;
+  max-width: var(--form-max-width);
+}
+
+main .form :is(input, textarea, select):not([type='checkbox']) {
+  width: 100%;
+  background-color: var(--form-input-background-color);
+  border: var(--form-input-border);
+  padding: .85rem .5rem .85rem 1rem;
+  margin: 0;
+  font-size: 20px;
+  font-family: var(--form-input-font-family);
+  letter-spacing: normal;
+  border-radius: 0.5rem;
+  color: var(--primary);
+  display: block;
+  line-height: 26px;
+}
+
+main .form textarea {
+  height: 10rem;
+}
+
+main .form form [data-hidden='true'] {
+  display: none !important;
+}
+
+main .form .field-invalid {
+  margin-bottom: 0;
+  font-size: 16px;
+  font-style: italic;
+  font-weight: 600;
+  color: var(--red);
+  display: none;
+  font-family: 'Gellix';/* stylelint-disable-line */
+}
+
+main .form-submit-wrapper {
+  margin: var(--form-submit-wrapper-margin);
+  grid-column: 1/-1;
+}
+
+@media (min-width: 600px) {
+  :root {
+    --form-input-margin: 0.5rem 0 1.5rem 0;
+    --form-columns: 2;
+    --form-fieldset-columns: 2;
+  }
+}
+
+main .form .field-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+main .form .form-region label,
+main .form .form-inquirytype label,
+main .form .form-subinquirytype label {
+  display: none;
+}
+
+main .form .field-wrapper label {
+  left: 0;
+  padding-left: 1rem;
+  padding-top: 0.8rem;
+  position: absolute;
+  top: 0;
+  -webkit-transition: all .2s; /* stylelint-disable-line */
+  transition: all .2s;
+  font-size: 20px;
+}
+
+main .form .field-wrapper input~label {
+  overflow-x: hidden;
+  right: 0.5rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+main .form input::placeholder,
+main .form textarea::placeholder {
+  opacity: 0;
+}
+
+main .form .field-wrapper input ~ label, main .form .field-wrapper textarea ~ label {
+  color: var(--primary);
+}
+  
+main .form input:not(:placeholder-shown), main .form input:focus,
+main .form textarea:not(:placeholder-shown),
+main .form textarea:focus {
+  padding-top: 1.1rem;
+  padding-bottom: 0.6rem;
+}
+
+main .form input:not(:placeholder-shown) ~ label, main .form input:focus ~ label,
+main .form textarea:not(:placeholder-shown) ~ label,
+main .form textarea:focus ~ label {
+  opacity: 0.65;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  -webkit-transform: scale(0.65) translateY(15%);
+  transform: scale(0.65) translateY(15%);
+  padding-top: 0.1rem;
+  padding-left: 1.5rem;
+  cursor: text;
+  -webkit-transform-origin: top left;
+  transform-origin: top left;
+}
+
+main .form .field-wrapper.form-select-wrapper label {
+  pointer-events: none;
+}
+
+main .form input:focus,
+main .form textarea:focus, main .form .field-wrapper select:focus {
+  outline: 0;
+  border-color: #97bce2;
+  background: var(--gray-lightest);
+  -webkit-box-shadow: 0 0 0 0.125rem var(--accent2-dark);
+  box-shadow: 0 0 0 0.125rem var(--accent2-dark);
+  -webkit-transition: border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+  transition: border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+  transition: box-shadow 0.5s, border-color 0.25s ease-in-out;
+  transition: box-shadow 0.5s, border-color 0.25s ease-in-out, -webkit-box-shadow 0.5s;
+}
+
+main .form .form-select-wrapper.field-wrapper select {
+  border: 0.05rem solid var(--gray-medium);
+  padding: 0.85rem 2.5rem 0.85rem 0.75rem;
+  text-overflow: ellipsis;
+  background: var(--gray-lightest) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Ctitle%3Earrow-down%3C/title%3E%3Cpath d='M0 5.5v-.2c.1-.2.3-.3.5-.3h23c.2 0 .4.1.5.3 0 .2 0 .4-.1.5l-11.5 13c-.1.1-.2.2-.4.2s-.3-.1-.4-.2L.1 5.8C0 5.7 0 5.6 0 5.5zm22.4.5H1.6L12 17.7 22.4 6z' fill='%23000048' stroke='%23000048' stroke-width='1'/%3E%3C/svg%3E") no-repeat right 1rem bottom 45%;
+  appearance: none;
+}
+ 
+main .form input:focus::placeholder,
+main .form textarea:focus::placeholder {
+  opacity: 1;
+  -webkit-transition: all 0.2s;
+  transition: all 0.2s;
+  color: var(--gray-dark);
+}
+
+.form-submit-wrapper button {
+  font-size: 20px;
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.form-submit-wrapper button::after {
+  -webkit-font-feature-settings: "liga";/* stylelint-disable-line */
+  -ms-font-feature-settings: "liga" 1;/* stylelint-disable-line */
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: Cognizant-Icons!important;/* stylelint-disable-line */
+  font-style: normal;
+  font-variant: normal;
+  -webkit-font-variant-ligatures: discretionary-ligatures;/* stylelint-disable-line */
+  font-variant-ligatures: discretionary-ligatures;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  margin-left: .25rem;
+  text-transform: none;
+  content: "";
+}
+
+main .form .form-subinquirytype {
+  display: none;
+}
+
+main .form .form-subinquirytype.show {
+  display: block;
+}
+
+main .form .was-validated select:invalid {
+  border-color: transparent;
+}
+
+main .form .was-validated input:invalid:not(:focus), main .form .was-validated select:invalid:not(:focus) {
+  border-color: var(--red);
+  background: #fceef0;
+}
+
+main .form .field-wrapper.form-privacy-consent input ~ label{
+  text-overflow: inherit;
+  overflow: visible;
+  position: relative;
+  flex: 1 1 90%;
+  padding: 0;
+  margin-bottom: 20px;
+  display: inline-block;
+  opacity: 1;
+  white-space: inherit;
+  cursor: default;
+}
+
+main .form .was-validated input:invalid:not(:focus) ~ label, main .form .was-validated select:invalid:not(:focus) ~ label {
+  color: var(--red);
+  opacity: 1;
+}
+
+main .form .was-validated input:invalid:focus {
+  -webkit-box-shadow: 0 0 0 0.125rem var(--red);
+  box-shadow: 0 0 0 0.125rem var(--red);
+  border-color: var(--red);
+}
+
+main .form .was-validated select:invalid:not(:focus) {
+  color: var(--red);
+  border-color: var(--red);
+  background: #fceef0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24'%3E%3Ctitle%3Earrow-down%3C/title%3E%3Cpath d='M0 5.5v-.2c.1-.2.3-.3.5-.3h23c.2 0 .4.1.5.3 0 .2 0 .4-.1.5l-11.5 13c-.1.1-.2.2-.4.2s-.3-.1-.4-.2L.1 5.8C0 5.7 0 5.6 0 5.5zm22.4.5H1.6L12 17.7 22.4 6z' fill='%23b81f2d' stroke='%23b81f2d' stroke-width='1'/%3E%3C/svg%3E") no-repeat right 1rem bottom 45%;
+}
+
+main .form .was-validated select:invalid:focus {
+  -webkit-box-shadow: 0 0 0 0.125rem var(--red);
+  box-shadow: 0 0 0 0.125rem var(--red);
+  border-color: var(--red);
+  outline: 0;
+}
+
+main .form .was-validated .field-invalid {
+  font-size: 0.8rem;
+  margin-top: 0.75rem;
+}
+
+main .form .is-invalid~.field-invalid, main .form .was-validated :invalid~.field-invalid {
+  display: block;
+}
+
+/* success/failure overlay styles */
+main #success-overlay .modal-content, main #error-overlay .modal-content {
+  background-color: var(--white);
+}
+
+main #success-overlay .modal-body > div, main #error-overlay .modal-body > div {
+  padding: 2rem;
+  padding-top: 3rem;
+}
+
+main .form .form-privacy-consent label a {
+  text-decoration: underline;
+  text-decoration-thickness: .1em;
+  text-underline-offset: .05em;
+  color: var(--link-color);
+  font-size: 20px;
+}
+
+main .form .form-privacy-consent label a:hover {
+  color: var(--link-hover-color);
+  text-decoration: underline;
+}
+
+main #success-overlay .modal-body p a, main #error-overlay .modal-body p a{
+  text-decoration: none;
+}
+
+main #success-overlay.modal-overlay .modal-dialog, main #error-overlay.modal-overlay .modal-dialog {
+  max-width: unset;
+}
+
+@media(min-width: 1024px) {
+  main #success-overlay.modal-overlay .modal-dialog, main #error-overlay.modal-overlay .modal-dialog {
+    max-width: 1140px;
+  }
+}
+
+main .form .field-description.field-invalid::before {
+  content: "";
+  margin-right: 0.25rem;
+}
+
+/* Checkbox styles */
+main .form input[type="checkbox"] {
+  box-sizing: border-box;
+  cursor: pointer;
+  line-height: 1.15;
+  margin: .3rem .8rem 0 0;
+  padding: 0;
+  position: relative;
+  height: 14px;
+  width: 13px;
+}
+
+main .form input[type="checkbox"]:focus {
+  outline: 0;
+  outline-color: var(--accent2-dark);
+  outline-offset: .2rem;
+  outline-width: 2px;
+}
+
+main .form input[type="checkbox"]::before {
+  border-color: var(--white);
+  border-style: none none solid solid;
+  border-width: 2px;
+  content: "";
+  height: 6px;
+  left: 1px;
+  position: absolute;
+  top: 3px;
+  transform: rotate(-45deg) scale(0);
+  transition: transform .4s cubic-bezier(.45,1.8,.5,.75);
+  width: 9pt;
+  z-index: 1;
+}
+
+main .form input[type="checkbox"]:checked::before {
+  transform: rotate(-45deg) scale(1);
+}
+
+main .form input[type="checkbox"]::after {
+  background: var(--white);
+  border: .12rem solid var(--accent2-medium);
+  border-radius: .2rem;
+  box-shadow: inset 0 1px 2px rgb(0 0 72 / 20%);
+  content: "";
+  cursor: pointer;
+  height: 20px;
+  left: -3px;
+  position: absolute;
+  top: -3px;
+  width: 20px;
+}
+
+main .form input[type="checkbox"]:focus::after {
+  border-color: #97bce2;
+  box-shadow: 0 0 0 .125rem var(--accent2-dark);
+  transition: box-shadow .5s, border-color .25s ease-in-out, -webkit-box-shadow .5s;
+}
+
+main .form input[type="checkbox"]:checked::after {
+  background: var(--accent2-dark);
+  border-color: var(--accent2-dark);
+}
+
+main .form .was-validated input[type="checkbox"]:invalid:not(:focus)::after {
+  background: #fceef0;
+  border: .05rem solid var(--red);
+}
+
+main .form .was-validated input[type="checkbox"]:invalid:focus::after {
+  border-color: var(--red);
+  box-shadow: 0 0 0 .04rem var(--red);
+}
+
+/* Privacy checkbox styles */
+main .form .form-privacy-consent{
+  display: flex;
+  flex-wrap: wrap;
+}
+
+main .form .field-wrapper.form-privacy-consent input:not(:placeholder-shown) ~ label{
+  transform: none;
+}
+
+main .form .was-validated .form-privacy-consent input:invalid:not(:focus) ~ label, main .form .form-privacy-consent.was-validated input:invalid:not(:focus) ~ label{
+  color:var(--primary);
+}
+
+main .fragment-container.form-container .text-wrapper ~ .fragment-wrapper {
+  padding: 0;
+}

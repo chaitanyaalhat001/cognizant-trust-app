@@ -1,0 +1,1986 @@
+{% extends 'base.html' %}
+{% load currency_filters %}
+
+{% block extra_css %}
+<!-- Admin dashboard specific CSS (non-dark mode related) -->
+<style>
+    .navigation-card {
+        min-height: 220px;
+    }
+    
+    .navigation-card .card-body {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    
+    .navigation-card .btn {
+        margin-top: auto;
+    }
+    
+    .stats-card .stats-label {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+    
+    .stats-card .stats-number {
+        white-space: nowrap;
+        word-break: normal;
+        overflow-wrap: normal;
+    }
+    
+    .stats-card .stats-number.currency-amount {
+        font-size: 1.8rem !important;
+    }
+    
+    .stats-card {
+        min-width: 160px;
+        overflow: visible;
+    }
+</style>
+{% endblock %}
+
+{% block title %}Admin Dashboard - CognizantTrust{% endblock %}
+
+{% block content %}
+<!-- CSRF Token for API calls -->
+{% csrf_token %}
+<!-- Hidden status for JavaScript -->
+<input type="hidden" id="credentialsStatus" value="{% if credentials_exist %}true{% else %}false{% endif %}">
+
+<!-- Dashboard Header -->
+<section class="py-4 bg-cognizant-light">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="d-flex align-items-center">
+                                    <div class="cognizant-logo-simple me-3"></div>
+                    <div>
+                        <h1 class="h2 fw-bold text-cognizant-navy mb-1">Admin Dashboard</h1>
+                        <p class="text-gray-600 mb-0">Manage donations and blockchain recording</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="d-flex gap-2 justify-content-lg-end">
+                    <a href="/django-admin/" class="btn btn-cognizant-primary btn-sm" target="_blank">
+                        <i class="fas fa-cogs me-1"></i>
+                        Django Admin
+                    </a>
+                    <a href="{% url 'donations:admin_logout' %}" class="btn btn-cognizant-secondary btn-sm">
+                        <i class="fas fa-sign-out-alt me-1"></i>
+                        Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Cards -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-blue">{{ total_donations }}</div>
+                    <div class="stats-label">Total Donations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-green">{{ recorded_donations_count }}</div>
+                    <div class="stats-label">Donations Recorded</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-orange">{{ pending_donations_count }}</div>
+                    <div class="stats-label">Pending Donations</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number text-cognizant-purple">{{ timedout_donations_count }}</div>
+                    <div class="stats-label">Timed Out</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Second Row of Statistics -->
+        <div class="row g-4 mt-3">
+            <div class="col-md-3 offset-md-4">
+                <div class="stats-card">
+                    <div class="stats-number currency-amount text-cognizant-blue">{{ total_donated_amount|inr_format }}</div>
+                    <div class="stats-label">Total Donated</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 🚀 AUTO RECORDING TOGGLE PANEL -->
+<section class="py-4">
+    <div class="container">
+        <div class="card border-0 shadow-sm" id="autoRecordingCard">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-6">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fas fa-robot fa-2x text-cognizant-purple"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-cognizant-navy">
+                                    <i class="fas fa-toggle-on me-2"></i>
+                                    Blockchain Recording Mode
+                                </h5>
+                                <!-- Cache updated: 2025-08-09 16:37 -->
+                                <p class="text-gray-600 mb-0" id="recordingModeStatus">
+                                    {% if auto_settings.recording_mode == 'automatic' %}
+                                        <span class="badge bg-success me-2">{{ auto_settings.get_recording_mode_display }}</span>
+                                    {% else %}
+                                        <span class="badge bg-warning me-2">{{ auto_settings.get_recording_mode_display }}</span>
+                                    {% endif %}
+                                    {{ auto_settings.security_status }}
+                                </p>
+                                <p class="text-gray-500 mb-0 mt-1">
+                                    <i class="fas fa-cogs me-1"></i>
+                                    <small>Background Threads: <span class="fw-bold" id="threadStatus">Checking...</span></small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6 text-lg-end">
+                        <div class="d-flex gap-2 justify-content-lg-end align-items-center">
+                            <!-- Toggle Switch -->
+                            <div class="form-check form-switch me-3">
+                                <input class="form-check-input" type="checkbox" 
+                                       id="autoRecordingToggle" 
+                                       {% if auto_settings.recording_mode == 'automatic' %}checked{% endif %}
+                                       style="width: 3rem; height: 1.5rem;">
+                                <label class="form-check-label fw-bold text-cognizant-navy" for="autoRecordingToggle">
+                                    Auto Mode
+                                </label>
+                            </div>
+                            
+
+                            <!-- Thread Monitor Button -->
+                            {% if auto_settings.is_automatic_mode %}
+                            <a href="{% url 'donations:thread_monitor' %}" class="btn btn-sm btn-outline-info"
+                               title="View detailed thread monitoring and status">
+                                <i class="fas fa-cogs me-1"></i>
+                                Monitor
+                            </a>
+                            {% endif %}
+                            
+                            <!-- Setup Button -->
+                            {% if not credentials_exist %}
+                            <button class="btn btn-cognizant-primary btn-sm" id="setupCredentialsBtn">
+                                <i class="fas fa-cog me-1"></i>
+                                Setup
+                            </button>
+                            {% else %}
+                            <button class="btn btn-cognizant-secondary btn-sm" id="manageCredentialsBtn">
+                                <i class="fas fa-shield-alt me-1"></i>
+                                Manage
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Info Panel -->
+                <div id="securityInfoPanel" class="mt-3 pt-3 border-top" {% if not credentials_exist %}style="display: none;"{% endif %}>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-lock text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Encryption Status</small>
+                                    <span class="fw-bold text-cognizant-green" id="encryptionStatus">
+                                        {% if credentials_exist %}AES-256 Encrypted{% else %}Not Configured{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-clock text-cognizant-orange me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Last Session</small>
+                                    <span class="fw-bold" id="lastSessionTime">
+                                        {% if auto_settings.last_auto_session %}{{ auto_settings.last_auto_session|date:"M d, H:i" }}{% else %}Never{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-coins text-cognizant-teal me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Auto Limit</small>
+                                    <span class="fw-bold">₹{{ auto_settings.max_auto_amount|floatformat:0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user-shield text-cognizant-purple me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Last Modified</small>
+                                    <span class="fw-bold">{{ auto_settings.last_modified_by|default:"System" }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+<!-- MetaMask Connection Panel -->
+<section class="py-4">
+    <div class="container">
+        <div class="card border-0 shadow-sm" id="metaMaskCard">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-lg-8">
+                        <div class="d-flex align-items-center">
+                            <div class="me-3">
+                                <i class="fab fa-ethereum fa-2x text-cognizant-blue"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-cognizant-blue">
+                                    <i class="fas fa-wallet me-2"></i>
+                                    MetaMask Connection
+                                </h5>
+                                <p class="text-gray-600 mb-0" id="connectionStatus">Checking connection...</p>
+                                <small class="text-muted">Required for manual mode only</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <button class="btn btn-cognizant-primary" id="connectMetaMask">
+                            <i class="fas fa-plug me-1"></i>
+                            Connect MetaMask
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Connection Details -->
+                <div id="connectionDetails" class="mt-3 pt-3 border-top" style="display: none;">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-user text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Connected Account</small>
+                                    <code id="connectedAccount" class="small">-</code>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-network-wired text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Network</small>
+                                    <span id="networkName" class="small fw-bold">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-coins text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Balance</small>
+                                    <span id="accountBalance" class="small">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Quick Access Navigation -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <!-- Donation Management Card -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100 navigation-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-heart fa-2x text-cognizant-blue"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-cognizant-blue">
+                                    <i class="fas fa-list me-2"></i>
+                                    Donation Management
+                                </h5>
+                                <p class="text-gray-600 mb-0">Manage all donations and record them on blockchain</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-list text-cognizant-blue me-2"></i>
+                                    <div>
+                                        <small class="text-gray-500 d-block">Total Donations</small>
+                                        <span class="small fw-bold text-cognizant-blue">{{ total_donations }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-clock text-cognizant-purple me-2"></i>
+                                    <div>
+                                        <small class="text-gray-500 d-block">Pending Recording</small>
+                                        <span class="small fw-bold text-cognizant-purple">{{ pending_donations_count }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-auto">
+                                                        <a href="{% url 'donations:donation_management' %}" class="btn btn-cognizant-primary w-100 mb-2">
+                                <i class="fas fa-heart me-1"></i>
+                                Manage Donations
+                            </a>
+ 
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Social Welfare Spending Card -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100 navigation-card">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="me-3">
+                                <i class="fas fa-hand-holding-heart fa-2x text-cognizant-blue"></i>
+                            </div>
+                            <div>
+                                <h5 class="mb-1 text-cognizant-blue">
+                                    <i class="fas fa-coins me-2"></i>
+                                    Social Welfare Spending
+                                </h5>
+                                <p class="text-gray-600 mb-0">Record and manage welfare expenditures with blockchain transparency</p>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-wallet text-cognizant-green me-2"></i>
+                                    <div>
+                                        <small class="text-gray-500 d-block">Available Balance</small>
+                                        <span class="small fw-bold text-cognizant-green">{{ remaining_balance|inr_format }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-chart-line text-cognizant-orange me-2"></i>
+                                    <div>
+                                        <small class="text-gray-500 d-block">Total Spent</small>
+                                        <span class="small fw-bold text-cognizant-orange">{{ total_spent_amount|inr_format }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-auto">
+                            <a href="{% url 'donations:social_spending' %}" class="btn btn-cognizant-primary w-100">
+                                <i class="fas fa-hand-holding-heart me-1"></i>
+                                Manage Welfare Spending
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-heart text-cognizant-blue me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Welfare Activities</small>
+                                    <span class="small fw-bold">{{ total_spendings }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-check-circle text-cognizant-green me-2"></i>
+                                <div>
+                                    <small class="text-gray-500 d-block">Status</small>
+                                    <span class="small fw-bold text-cognizant-green">Ready ✓</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Note: Donation Management moved to separate page at /admin/donations/ -->
+
+<!-- Loading Modal -->
+<div class="modal fade" id="loadingModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body text-center p-4">
+                <div class="mb-3">
+                    <div class="spinner-border text-cognizant-blue" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+                <h6 class="text-cognizant-blue mb-2">Recording on Blockchain</h6>
+                <p class="text-gray-600 mb-0 small">Please confirm the transaction in MetaMask...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Modal -->
+<div class="modal fade" id="successModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-cognizant-green text-white border-0">
+                <h5 class="modal-title">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Blockchain Recording Successful
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4">
+                    <div class="bg-cognizant-light rounded-circle d-inline-flex align-items-center justify-content-center" 
+                         style="width: 80px; height: 80px;">
+                        <i class="fas fa-cube fa-2x text-cognizant-green"></i>
+                    </div>
+                </div>
+                
+                <h4 class="text-center text-cognizant-blue mb-3">Transaction Recorded!</h4>
+                <p class="text-center text-gray-600 mb-4">The donation has been successfully recorded on the Ethereum blockchain.</p>
+                
+                <div class="bg-gray-50 rounded p-3 mb-3">
+                    <div class="row g-2">
+                        <div class="col-sm-4"><strong>Transaction Hash:</strong></div>
+                        <div class="col-sm-8">
+                            <code id="modalTxHash" class="small text-break">-</code>
+                            <button class="btn btn-link btn-sm p-0 ms-1" onclick="copyToClipboard(document.getElementById('modalTxHash').textContent)">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="col-sm-4"><strong>Block:</strong></div>
+                        <div class="col-sm-8" id="modalBlockNumber">Pending confirmation...</div>
+                        
+                        <div class="col-sm-4"><strong>Gas Used:</strong></div>
+                        <div class="col-sm-8" id="modalGasUsed">-</div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-info mb-0">
+                    <div class="d-flex align-items-start">
+                        <i class="fas fa-info-circle me-2 mt-1"></i>
+                        <div>
+                            <strong>Next Steps:</strong>
+                            <small class="d-block mt-1">
+                                The transaction is now publicly verifiable on the Ethereum blockchain. Users can view it in the public audit trail and verify it on Etherscan.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-cognizant-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>
+                    Close
+                </button>
+                <a id="etherscanLink" href="#" target="_blank" class="btn btn-cognizant-primary">
+                    <i class="fas fa-external-link-alt me-1"></i>
+                    View on Etherscan
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Contract configuration
+    const CONTRACT_ADDRESS = '0x1b8DC2B5A23070F192531671108d4049B5621710'; // Your deployed contract address
+    const CONTRACT_ABI = [
+        {
+            "inputs": [
+                {"internalType": "string", "name": "donorName", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "purpose", "type": "string"},
+                {"internalType": "string", "name": "upiRefId", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"}
+            ],
+            "name": "recordTransaction",
+            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "string", "name": "title", "type": "string"},
+                {"internalType": "string", "name": "description", "type": "string"},
+                {"internalType": "string", "name": "category", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "beneficiaries", "type": "string"},
+                {"internalType": "string", "name": "location", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"}
+            ],
+            "name": "recordSpending",
+            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "bytes32", "name": "txHash", "type": "bytes32"}
+            ],
+            "name": "getTransaction",
+            "outputs": [
+                {"internalType": "string", "name": "donorName", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "purpose", "type": "string"},
+                {"internalType": "string", "name": "upiRefId", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"},
+                {"internalType": "uint256", "name": "timestamp", "type": "uint256"}
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "bytes32", "name": "spendingHash", "type": "bytes32"}
+            ],
+            "name": "getSpending",
+            "outputs": [
+                {"internalType": "string", "name": "title", "type": "string"},
+                {"internalType": "string", "name": "description", "type": "string"},
+                {"internalType": "string", "name": "category", "type": "string"},
+                {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"internalType": "string", "name": "beneficiaries", "type": "string"},
+                {"internalType": "string", "name": "location", "type": "string"},
+                {"internalType": "address", "name": "adminWallet", "type": "address"},
+                {"internalType": "uint256", "name": "timestamp", "type": "uint256"}
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getTotalTransactions",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "getTotalSpendings",
+            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "uint256", "name": "index", "type": "uint256"}
+            ],
+            "name": "getTransactionByIndex",
+            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {"internalType": "uint256", "name": "index", "type": "uint256"}
+            ],
+            "name": "getSpendingByIndex",
+            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {"indexed": true, "internalType": "bytes32", "name": "transactionHash", "type": "bytes32"},
+                {"indexed": false, "internalType": "string", "name": "donorName", "type": "string"},
+                {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"indexed": false, "internalType": "string", "name": "purpose", "type": "string"},
+                {"indexed": false, "internalType": "string", "name": "upiRefId", "type": "string"},
+                {"indexed": true, "internalType": "address", "name": "adminWallet", "type": "address"},
+                {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+            ],
+            "name": "TransactionRecorded",
+            "type": "event"
+        },
+        {
+            "anonymous": false,
+            "inputs": [
+                {"indexed": true, "internalType": "bytes32", "name": "spendingHash", "type": "bytes32"},
+                {"indexed": false, "internalType": "string", "name": "title", "type": "string"},
+                {"indexed": false, "internalType": "string", "name": "description", "type": "string"},
+                {"indexed": false, "internalType": "string", "name": "category", "type": "string"},
+                {"indexed": false, "internalType": "uint256", "name": "amount", "type": "uint256"},
+                {"indexed": false, "internalType": "string", "name": "beneficiaries", "type": "string"},
+                {"indexed": false, "internalType": "string", "name": "location", "type": "string"},
+                {"indexed": true, "internalType": "address", "name": "adminWallet", "type": "address"},
+                {"indexed": false, "internalType": "uint256", "name": "timestamp", "type": "uint256"}
+            ],
+            "name": "SpendingRecorded",
+            "type": "event"
+        }
+    ];
+
+    let web3;
+    let contract;
+    let userAccount;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🚀 DOM Content Loaded - Starting MetaMask initialization');
+        
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Check if MetaMask is available
+        if (typeof window.ethereum !== 'undefined') {
+            console.log('✅ MetaMask detected, initializing...');
+            initializeWeb3();
+            setupMetaMaskEventListeners();
+        } else {
+            console.log('❌ MetaMask not detected');
+            updateConnectionStatus('MetaMask not detected. Please install MetaMask extension.', 'danger');
+            updateConnectButton(false);
+        }
+
+        // Set up event listeners
+        console.log('🔗 Setting up event listeners');
+        const connectButton = document.getElementById('connectMetaMask');
+        if (connectButton) {
+            connectButton.addEventListener('click', connectMetaMask);
+            console.log('✅ Connect button event listener added');
+        } else {
+            console.error('❌ Connect button not found!');
+        }
+        
+        // Set up record blockchain buttons
+        document.querySelectorAll('.record-blockchain-btn').forEach(button => {
+            button.addEventListener('click', recordOnBlockchain);
+        });
+
+        // Auto-refresh every 30 seconds (disabled for testing)
+        // setInterval(() => {
+        //     window.location.reload();
+        // }, 30000);
+    });
+
+    async function initializeWeb3() {
+        try {
+            console.log('Initializing Web3...');
+            console.log('window.ethereum available:', !!window.ethereum);
+            console.log('CONTRACT_ADDRESS:', CONTRACT_ADDRESS);
+            console.log('CONTRACT_ABI length:', CONTRACT_ABI ? CONTRACT_ABI.length : 'undefined');
+            
+            web3 = new Web3(window.ethereum);
+            console.log('Web3 instance created:', !!web3);
+            
+            // Validate contract address and ABI before creating contract
+            if (!CONTRACT_ADDRESS || CONTRACT_ADDRESS === '') {
+                throw new Error('Contract address is not defined');
+            }
+            
+            if (!CONTRACT_ABI || !Array.isArray(CONTRACT_ABI) || CONTRACT_ABI.length === 0) {
+                throw new Error('Contract ABI is not properly defined');
+            }
+            
+            contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+            console.log('Contract instance created:', !!contract);
+            console.log('Contract methods available:', !!contract.methods);
+            
+            if (!contract.methods) {
+                throw new Error('Contract methods not available after initialization');
+            }
+            
+            console.log('Web3 initialized successfully');
+            
+            // Check if MetaMask is actually connected (not just has accounts)
+            await checkMetaMaskConnectionStatus();
+            
+        } catch (error) {
+            console.error('Web3 initialization error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                contractAddress: CONTRACT_ADDRESS,
+                abiLength: CONTRACT_ABI ? CONTRACT_ABI.length : 'undefined'
+            });
+            updateConnectionStatus('Failed to initialize Web3: ' + error.message, 'danger');
+            updateConnectButton(false);
+        }
+    }
+
+    async function checkMetaMaskConnectionStatus() {
+        try {
+            console.log('🔍 Checking MetaMask connection status...');
+            
+            // Check if MetaMask is connected to our site
+            const accounts = await web3.eth.getAccounts();
+            console.log('Available accounts:', accounts);
+            
+            if (accounts.length > 0) {
+                // Check if the user actually granted permissions
+                const permissions = await window.ethereum.request({
+                    method: 'wallet_getPermissions'
+                });
+                console.log('Wallet permissions:', permissions);
+                
+                if (permissions.length > 0) {
+                    userAccount = accounts[0];
+                    console.log('✅ MetaMask is connected with account:', userAccount);
+                    await updateConnectionInfo();
+                    console.log('🔄 Auto-connected from existing session');
+                } else {
+                    console.log('❌ No permissions granted - starting fresh');
+                    resetToDisconnectedState();
+                }
+            } else {
+                console.log('❌ No accounts available - starting fresh');
+                resetToDisconnectedState();
+            }
+        } catch (error) {
+            console.error('Error checking MetaMask status:', error);
+            resetToDisconnectedState();
+        }
+    }
+
+    function resetToDisconnectedState() {
+        console.log('🔄 Resetting to disconnected state');
+        userAccount = null;
+        updateConnectionStatus('Click "Connect MetaMask" to get started', 'info');
+        updateConnectButton(false);
+        document.getElementById('connectionDetails').style.display = 'none';
+    }
+
+    async function connectMetaMask() {
+        console.log('🔌 connectMetaMask function called');
+        const button = document.getElementById('connectMetaMask');
+        console.log(`🔍 Current userAccount: ${userAccount}`);
+        console.log(`🔍 Current button state: ${button ? button.className : 'button not found'}`);
+        
+        // Check if already connected - if so, disconnect
+        if (userAccount) {
+            console.log('🔄 Already connected, switching to disconnect...');
+            await disconnect();
+            return;
+        }
+
+        try {
+            updateConnectionStatus('Connecting to MetaMask...', 'info');
+            
+            console.log('🔐 Requesting MetaMask connection...');
+            
+            // Standard connection request
+            const accounts = await window.ethereum.request({
+                method: 'eth_requestAccounts'
+            });
+            
+            if (accounts.length > 0) {
+                userAccount = accounts[0];
+                console.log('Connected account:', userAccount);
+                
+                // Reinitialize web3 and contract if they were cleared during disconnect
+                if (!web3 || !contract) {
+                    console.log('🔄 Reinitializing Web3 and contract...');
+                    web3 = new Web3(window.ethereum);
+                    contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    console.log('✅ Web3 and contract reinitialized successfully');
+                }
+                
+                await updateConnectionInfo();
+                
+                // Test contract accessibility
+                await testContractConnection();
+                
+                showAlert('success', 'MetaMask connected successfully!');
+            } else {
+                updateConnectionStatus('No accounts found', 'warning');
+                updateConnectButton(false);
+            }
+        } catch (error) {
+            console.error('MetaMask connection error:', error);
+            updateConnectButton(false);
+            if (error.code === 4001) {
+                updateConnectionStatus('Connection rejected by user', 'warning');
+            } else if (error.code === -32002) {
+                updateConnectionStatus('Connection request already pending', 'info');
+            } else {
+                updateConnectionStatus('Failed to connect to MetaMask: ' + error.message, 'danger');
+            }
+        }
+    }
+
+    async function disconnect() {
+        console.log('🔄 Disconnecting from MetaMask...');
+        
+        // Try to actually disconnect from MetaMask if possible
+        try {
+            console.log('🔌 Attempting to disconnect MetaMask session...');
+            
+            // Some MetaMask versions support this method
+            if (window.ethereum.disconnect) {
+                await window.ethereum.disconnect();
+                console.log('✅ MetaMask session disconnected');
+            } else {
+                console.log('ℹ️ MetaMask disconnect method not available');
+            }
+        } catch (disconnectError) {
+            console.log('⚠️ Could not disconnect MetaMask session:', disconnectError.message);
+        }
+        
+        // Clear local variables - they will be reinitialized on reconnection
+        userAccount = null;
+        web3 = null;
+        contract = null;
+        
+        // Clear any cached connection data to force fresh authentication
+        console.log('🧹 Clearing connection cache to force fresh authentication...');
+        
+        // Hide connection details
+        document.getElementById('connectionDetails').style.display = 'none';
+        
+        // Clear account display if visible
+        const accountElement = document.getElementById('connectedAccount');
+        if (accountElement) {
+            accountElement.textContent = '-';
+        }
+        
+        // Clear network and balance display
+        const networkElement = document.getElementById('networkName');
+        if (networkElement) {
+            networkElement.textContent = '-';
+            networkElement.className = 'small fw-bold';
+        }
+        
+        const balanceElement = document.getElementById('accountBalance');
+        if (balanceElement) {
+            balanceElement.textContent = '-';
+        }
+        
+        // Update UI
+        updateConnectButton(false);
+        updateConnectionStatus('Disconnected. Click "Connect MetaMask" to reconnect', 'info');
+        
+        showAlert('info', 'Disconnected from MetaMask successfully!');
+        console.log('✅ Successfully disconnected from MetaMask');
+        console.log('💡 Tip: For password prompt, manually disconnect this site in MetaMask → Settings → Connected Sites');
+    }
+
+    function setupMetaMaskEventListeners() {
+        // Listen for account changes (user switches accounts or disconnects in MetaMask)
+        window.ethereum.on('accountsChanged', function (accounts) {
+            console.log('🔄 Accounts changed:', accounts);
+            if (accounts.length > 0) {
+                if (accounts[0] !== userAccount) {
+                    console.log('📝 Account switched to:', accounts[0]);
+                    userAccount = accounts[0];
+                    updateConnectionInfo();
+                }
+            } else {
+                console.log('❌ All accounts disconnected in MetaMask');
+                disconnect();
+            }
+        });
+
+        // Listen for network changes
+        window.ethereum.on('chainChanged', function (chainId) {
+            console.log('🌐 Network changed to:', chainId);
+            if (userAccount) {
+                // Reload page to ensure clean state after network change
+                console.log('🔄 Reloading page due to network change...');
+                window.location.reload();
+            }
+        });
+
+        // Listen for connection/disconnection events
+        window.ethereum.on('connect', function (connectInfo) {
+            console.log('🔗 MetaMask connected:', connectInfo);
+        });
+
+        window.ethereum.on('disconnect', function (error) {
+            console.log('🔌 MetaMask disconnected:', error);
+            disconnect();
+        });
+    }
+    
+    async function testContractConnection() {
+        try {
+            console.log('Testing contract connection...');
+            console.log('Contract address:', CONTRACT_ADDRESS);
+            console.log('Contract object:', contract);
+            
+            // Check if contract is properly initialized
+            if (!contract) {
+                console.error('Contract object is null - reinitializing...');
+                // Reinitialize contract
+                if (web3) {
+                    contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    console.log('Contract reinitialized:', contract);
+                } else {
+                    throw new Error('Web3 is not initialized');
+                }
+            }
+            
+            if (!contract.methods) {
+                throw new Error('Contract methods not available - invalid ABI or address');
+            }
+            
+            // Try to call a read-only function to test if contract exists
+            console.log('📞 Calling contract.methods.getTotalTransactions()...');
+            const totalTransactions = await contract.methods.getTotalTransactions().call();
+            const transactionCount = totalTransactions ? totalTransactions.toString() : '0';
+            console.log('✅ Contract test successful! Total transactions:', transactionCount);
+            console.log('🔗 Contract Address:', CONTRACT_ADDRESS);
+            console.log('🌐 Network: Sepolia Testnet');
+            showAlert('success', `🎉 Contract connected successfully! Total transactions: ${transactionCount}`);
+        } catch (error) {
+            console.error('Contract test failed:', error);
+            console.error('Error details:', {
+                message: error.message,
+                stack: error.stack,
+                contractExists: !!contract,
+                web3Exists: !!web3,
+                contractAddress: CONTRACT_ADDRESS
+            });
+            
+            if (error.message.includes('Web3 is not initialized')) {
+                showAlert('danger', 'Web3 connection failed. Please refresh and try again.');
+            } else if (error.message.includes('invalid ABI')) {
+                showAlert('warning', 'Smart contract ABI mismatch. Contract may need to be redeployed.');
+            } else if (error.message.includes('execution reverted')) {
+                showAlert('warning', 'Contract exists but call failed. Check network connection.');
+            } else {
+                showAlert('warning', 'Contract verification failed. Please check: 1) Contract is deployed on Sepolia, 2) Address is correct, 3) Network connection is stable.');
+            }
+        }
+    }
+
+    async function updateConnectionInfo() {
+        try {
+            // Get network information using modern Web3 API
+            const chainId = await web3.eth.getChainId();
+            const balance = await web3.eth.getBalance(userAccount);
+            const balanceEth = web3.utils.fromWei(balance, 'ether');
+            
+            // Update UI
+            document.getElementById('connectedAccount').textContent = 
+                userAccount.slice(0, 6) + '...' + userAccount.slice(-4);
+            
+            // Check if we're on Sepolia testnet (chain ID 11155111)
+            if (Number(chainId) === 11155111) {
+                document.getElementById('networkName').textContent = 'Sepolia Testnet';
+                document.getElementById('networkName').className = 'small fw-bold text-success';
+                updateConnectionStatus('Connected to Sepolia testnet', 'success');
+            } else {
+                document.getElementById('networkName').textContent = `Wrong Network (Chain ID: ${chainId})`;
+                document.getElementById('networkName').className = 'small fw-bold text-danger';
+                updateConnectionStatus('Please switch to Sepolia testnet', 'warning');
+            }
+            
+            document.getElementById('accountBalance').textContent = 
+                parseFloat(balanceEth).toFixed(4) + ' ETH';
+            
+            // Show connection details
+            document.getElementById('connectionDetails').style.display = 'block';
+            
+            // Update connect button to show connected state
+            updateConnectButton(true);
+            
+        } catch (error) {
+            console.error('Failed to update connection info:', error);
+            updateConnectionStatus('Failed to fetch account details', 'danger');
+            updateConnectButton(false);
+        }
+    }
+
+    function updateConnectionStatus(message, type) {
+        const statusElement = document.getElementById('connectionStatus');
+        statusElement.textContent = message;
+        statusElement.className = `text-gray-600 mb-0 ${getTextClass(type)}`;
+    }
+
+    function getTextClass(type) {
+        switch(type) {
+            case 'success': return 'text-success';
+            case 'danger': return 'text-danger';
+            case 'warning': return 'text-warning';
+            case 'info': return 'text-info';
+            default: return 'text-gray-600';
+        }
+    }
+
+    function updateConnectButton(isConnected) {
+        console.log(`🔄 updateConnectButton called with isConnected: ${isConnected}`);
+        const button = document.getElementById('connectMetaMask');
+        if (!button) {
+            console.error('❌ Connect button not found in updateConnectButton!');
+            return;
+        }
+        
+        if (isConnected) {
+            console.log('🟢 Setting button to connected state');
+            button.className = 'btn btn-success';
+            button.innerHTML = '<i class="fas fa-check-circle me-1"></i>Connected';
+            button.title = 'Click to disconnect from MetaMask';
+        } else {
+            console.log('🔵 Setting button to disconnected state');
+            button.className = 'btn btn-cognizant-primary';
+            button.innerHTML = '<i class="fas fa-plug me-1"></i>Connect MetaMask';
+            button.title = 'Click to connect to MetaMask';
+        }
+        console.log(`✅ Button updated. Current class: ${button.className}`);
+    }
+
+    async function recordOnBlockchain(event) {
+        const button = event.target.closest('.record-blockchain-btn');
+        const donationId = button.getAttribute('data-donation-id');
+        const donorName = button.getAttribute('data-donor-name');
+        const amount = button.getAttribute('data-amount');
+        const purpose = button.getAttribute('data-purpose');
+        const upiRef = button.getAttribute('data-upi-ref');
+
+        if (!userAccount) {
+            showAlert('warning', 'Please connect MetaMask first');
+            return;
+        }
+
+        try {
+            console.log('Starting blockchain recording for donation:', donationId);
+            
+            // Show loading modal
+            const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+            loadingModal.show();
+
+            // Disable button
+            button.disabled = true;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Processing...';
+
+            // Convert amount to appropriate format for blockchain
+            // Since we're dealing with rupees, not ether, we'll use the raw amount in paisa
+            const amountInPaisa = Math.floor(parseFloat(amount) * 100);
+            console.log('Amount converted to paisa:', amountInPaisa);
+
+            // Call smart contract
+            console.log('Calling smart contract with params:', {
+                donorName, amountInPaisa, purpose, upiRef, userAccount
+            });
+            
+            const result = await contract.methods.recordTransaction(
+                donorName,
+                amountInPaisa,
+                purpose,
+                upiRef,
+                userAccount
+            ).send({
+                from: userAccount,
+                gas: 300000
+            });
+
+            console.log('Blockchain transaction successful:', result.transactionHash);
+            
+            // Hide loading modal safely
+            try {
+                loadingModal.hide();
+            } catch (e) {
+                console.log('Loading modal already hidden');
+            }
+
+            // Update backend
+            console.log('Updating backend status...');
+            await updateBackendStatus(donationId, result.transactionHash, userAccount);
+
+            // Show success modal safely
+            try {
+                showSuccessModal(result.transactionHash, result.blockNumber, result.gasUsed);
+            } catch (e) {
+                console.log('Success modal error:', e);
+            }
+
+            // Update the table row safely
+            try {
+                updateTableRow(donationId, result.transactionHash);
+            } catch (e) {
+                console.log('Table update error:', e);
+            }
+
+            showAlert('success', 'Transaction recorded on blockchain successfully!');
+
+        } catch (error) {
+            console.error('Blockchain recording error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                code: error.code,
+                data: error.data
+            });
+            
+            // Hide loading modal safely
+            try {
+                const loadingModal = bootstrap.Modal.getInstance(document.getElementById('loadingModal'));
+                if (loadingModal) loadingModal.hide();
+            } catch (e) {
+                console.log('Modal cleanup error:', e);
+            }
+
+            // Reset button safely
+            try {
+                if (button) {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }
+            } catch (e) {
+                console.log('Button reset error:', e);
+            }
+
+            if (error.code === 4001) {
+                showAlert('warning', 'Transaction was rejected by user');
+            } else if (error.message.includes('execution reverted')) {
+                showAlert('danger', 'Smart contract execution failed. The contract may not be deployed correctly.');
+            } else if (error.message.includes('network')) {
+                showAlert('danger', 'Network error. Please check your connection to Sepolia testnet.');
+            } else {
+                showAlert('danger', 'Failed to record on blockchain: ' + error.message);
+            }
+        }
+    }
+
+    async function updateBackendStatus(donationId, txHash, adminWallet) {
+        try {
+            console.log('=== UPDATING BACKEND STATUS ===');
+            console.log('Donation ID:', donationId);
+            console.log('TX Hash:', txHash);
+            console.log('Admin Wallet:', adminWallet);
+            
+            const csrfElement = document.querySelector('[name=csrfmiddlewaretoken]');
+            const csrfToken = csrfElement ? csrfElement.value : '';
+            console.log('CSRF Token:', csrfToken ? 'Found' : 'Missing');
+            
+            if (!csrfToken) {
+                console.error('CSRF token not found! This will cause the request to fail.');
+                console.error('Available input elements:', document.querySelectorAll('input[type=hidden]'));
+                console.error('CSRF elements found:', document.querySelectorAll('[name=csrfmiddlewaretoken]'));
+                showAlert('danger', 'CSRF token missing. Please refresh the page and try again.');
+                return;
+            }
+            
+            const requestData = {
+                transaction_id: donationId,
+                tx_hash: txHash,
+                admin_wallet: adminWallet
+            };
+            console.log('Request Data:', requestData);
+            
+            console.log('Sending request to:', '{% url "donations:record_on_blockchain" %}');
+            
+            const response = await fetch('{% url "donations:record_on_blockchain" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(requestData)
+            });
+
+            console.log('Response status:', response.status);
+            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+            
+            const result = await response.json();
+            console.log('Response data:', result);
+            
+            if (!result.success) {
+                console.error('Backend update failed:', result.error);
+                showAlert('danger', 'Backend update failed: ' + result.error);
+            } else {
+                console.log('✅ Backend updated successfully:', result.message);
+                showAlert('success', 'Database updated successfully!');
+            }
+        } catch (error) {
+            console.error('Backend update error:', error);
+            showAlert('danger', 'Failed to update backend: ' + error.message);
+        }
+    }
+
+    function showSuccessModal(txHash, blockNumber, gasUsed) {
+        try {
+            const txHashElement = document.getElementById('modalTxHash');
+            const blockNumberElement = document.getElementById('modalBlockNumber');
+            const gasUsedElement = document.getElementById('modalGasUsed');
+            
+            if (txHashElement) txHashElement.textContent = txHash;
+            if (blockNumberElement) blockNumberElement.textContent = blockNumber || 'Pending...';
+            if (gasUsedElement) gasUsedElement.textContent = gasUsed ? gasUsed.toLocaleString() : '-';
+        } catch (e) {
+            console.log('Success modal update error:', e);
+        }
+                        // Ensure txHash has 0x prefix
+                const prefixedTxHash = txHash.startsWith('0x') ? txHash : `0x${txHash}`;
+                document.getElementById('etherscanLink').href = `https://sepolia.etherscan.io/tx/${prefixedTxHash}`;
+        
+        const successModal = new bootstrap.Modal(document.getElementById('successModal'));
+        successModal.show();
+    }
+
+    function updateTableRow(donationId, txHash) {
+        try {
+            const row = document.getElementById(`donation-${donationId}`);
+            if (row && row.children && row.children.length > 6) {
+                // Update status column safely
+                const statusCell = row.children[5];
+                if (statusCell) {
+                    statusCell.innerHTML = `
+                        <span class="badge bg-success">
+                            <i class="fas fa-check-circle me-1"></i>
+                            Recorded
+                        </span>
+                    `;
+                }
+
+                // Update actions column safely
+                const actionsCell = row.children[6];
+                if (actionsCell) {
+                    actionsCell.innerHTML = `
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-outline-primary btn-sm" 
+                                    data-bs-toggle="tooltip" 
+                                    title="Transaction Hash: ${txHash}"
+                                    onclick="copyToClipboard('${txHash}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                            <a href="https://sepolia.etherscan.io/tx/${txHash.startsWith('0x') ? txHash : '0x' + txHash}" 
+                               target="_blank" 
+                               class="btn btn-outline-success btn-sm">
+                                <i class="fas fa-external-link-alt"></i>
+                            </a>
+                        </div>
+                    `;
+                }
+            } else {
+                console.log('Table row not found or invalid structure for donation:', donationId);
+            }
+        } catch (e) {
+            console.log('Error updating table row:', e);
+        }
+    }
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            showAlert('success', 'Copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy:', err);
+            showAlert('danger', 'Failed to copy to clipboard');
+        });
+    }
+
+    // Notification queue system
+    window.notificationQueue = window.notificationQueue || [];
+    window.activeNotifications = window.activeNotifications || [];
+
+    function showAlert(type, message) {
+        // Check if there's already an active notification
+        if (window.activeNotifications.length > 0) {
+            // Queue this notification
+            window.notificationQueue.push({ type, message });
+            return;
+        }
+
+        displayNotification(type, message);
+    }
+
+    function displayNotification(type, message) {
+        // Create backdrop overlay
+        const backdrop = document.createElement('div');
+        backdrop.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.3);
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        `;
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alertDiv.style.cssText = `
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            min-width: 400px;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            animation: slideIn 0.3s ease-out;
+        `;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+                to {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+            }
+            @keyframes slideOut {
+                from {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1);
+                }
+                to {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.9);
+                }
+            }
+        `;
+        if (!document.querySelector('#notification-styles')) {
+            style.id = 'notification-styles';
+            document.head.appendChild(style);
+        }
+        
+        // Add to active notifications
+        window.activeNotifications.push({ backdrop, alertDiv });
+        
+        // Add both backdrop and alert to body
+        document.body.appendChild(backdrop);
+        document.body.appendChild(alertDiv);
+        
+        // Remove function
+        const removeAlert = () => {
+            alertDiv.style.animation = 'slideOut 0.3s ease-in';
+            setTimeout(() => {
+                if (backdrop.parentNode) backdrop.remove();
+                if (alertDiv.parentNode) alertDiv.remove();
+                
+                // Remove from active notifications
+                window.activeNotifications = window.activeNotifications.filter(n => n.alertDiv !== alertDiv);
+                
+                // Show next notification in queue
+                if (window.notificationQueue.length > 0) {
+                    const next = window.notificationQueue.shift();
+                    setTimeout(() => displayNotification(next.type, next.message), 100);
+                }
+            }, 300);
+        };
+        
+        // Click backdrop to close
+        backdrop.addEventListener('click', removeAlert);
+        
+        // Click close button
+        alertDiv.querySelector('.btn-close').addEventListener('click', removeAlert);
+        
+        // Auto remove after 5 seconds
+        setTimeout(removeAlert, 5000);
+    }
+
+    // Event listeners are set up in setupMetaMaskEventListeners() function above
+
+    // 🚀 AUTO RECORDING MANAGEMENT JAVASCRIPT
+    setupAutoRecordingEventListeners();
+    
+    // Check background processor status on page load and periodically
+    checkProcessorStatus();
+    
+    // Update status every 30 seconds
+    setInterval(checkProcessorStatus, 30000);
+
+    function setupAutoRecordingEventListeners() {
+        // Toggle switch event
+        const toggleSwitch = document.getElementById('autoRecordingToggle');
+        if (toggleSwitch) {
+            toggleSwitch.addEventListener('change', handleToggleChange);
+        }
+
+        // Setup credentials button
+        const setupBtn = document.getElementById('setupCredentialsBtn');
+        if (setupBtn) {
+            setupBtn.addEventListener('click', showCredentialSetupModal);
+        }
+
+        // Manage credentials button
+        const manageBtn = document.getElementById('manageCredentialsBtn');
+        if (manageBtn) {
+            manageBtn.addEventListener('click', showCredentialManageModal);
+        }
+
+
+    }
+
+    async function handleToggleChange(event) {
+        const isAutoMode = event.target.checked;
+        
+        if (isAutoMode) {
+            // Switching to automatic mode
+            if (!credentialsExist()) {
+                event.target.checked = false;
+                showAlert('warning', 'Please setup credentials first');
+                showCredentialSetupModal();
+                return;
+            }
+            
+            // Show password prompt modal
+            showPasswordPromptModal('enable');
+        } else {
+            // Switching to manual mode
+            await toggleRecordingMode('manual');
+        }
+    }
+
+    function credentialsExist() {
+        // Get value from a hidden element or data attribute
+        const credentialsStatus = document.getElementById('credentialsStatus');
+        return credentialsStatus && credentialsStatus.value === 'true';
+    }
+
+    async function toggleRecordingMode(mode, masterPassword = null) {
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const response = await fetch('/admin/toggle-mode/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    mode: mode,
+                    master_password: masterPassword
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', result.message);
+                updateRecordingModeUI(result.mode, result.security_status);
+                
+                // Update last session time if switching to auto
+                if (mode === 'automatic') {
+                    updateLastSessionTime();
+                    // Start background processor
+                    await toggleBackgroundProcessor();
+                } else {
+                    // Stop background processor when switching to manual
+                    await toggleBackgroundProcessor();
+                }
+            } else {
+                showAlert('danger', result.error);
+                // Reset toggle if failed
+                const toggle = document.getElementById('autoRecordingToggle');
+                if (toggle) {
+                    toggle.checked = mode !== 'automatic';
+                }
+            }
+        } catch (error) {
+            console.error('Toggle mode error:', error);
+            showAlert('danger', 'Failed to toggle recording mode');
+        }
+    }
+
+    async function checkProcessorStatus() {
+        try {
+            const response = await fetch('/admin/processor-status/');
+            const result = await response.json();
+            
+            const statusElement = document.getElementById('threadStatus');
+            if (result.success && result.status) {
+                const status = result.status;
+                const threadCount = Object.values(status.threads).filter(Boolean).length;
+                
+                if (status.running && threadCount > 0) {
+                    statusElement.innerHTML = `<span class="text-success">🚀 ${threadCount}/3 Active</span>`;
+                    statusElement.title = `Threads: ${Object.keys(status.threads).join(', ')}`;
+                } else if (status.auto_mode_enabled) {
+                    statusElement.innerHTML = `<span class="text-warning">⏸️ Starting...</span>`;
+                } else {
+                    statusElement.innerHTML = `<span class="text-muted">⏹️ Disabled</span>`;
+                }
+            } else {
+                statusElement.innerHTML = `<span class="text-danger">❌ Error</span>`;
+            }
+        } catch (error) {
+            console.error('Status check error:', error);
+            document.getElementById('threadStatus').innerHTML = `<span class="text-danger">❌ Error</span>`;
+        }
+    }
+
+    async function toggleBackgroundProcessor() {
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const response = await fetch('/admin/toggle-processor/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                }
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                console.log('🚀 Background processor:', result.message);
+            } else {
+                console.error('❌ Background processor error:', result.error);
+            }
+            
+        } catch (error) {
+            console.error('Background processor toggle error:', error);
+        }
+    }
+
+    function updateRecordingModeUI(mode, securityStatus) {
+        // Update status badge
+        const statusElement = document.getElementById('recordingModeStatus');
+        if (statusElement) {
+            const badgeClass = mode === 'automatic' ? 'bg-success' : 'bg-warning';
+            const modeDisplay = mode === 'automatic' ? 'Automatic (Server-Side Signing)' : 'Manual (MetaMask Required)';
+            
+            statusElement.innerHTML = `
+                <span class="badge ${badgeClass} me-2">${modeDisplay}</span>
+                ${securityStatus}
+            `;
+        }
+
+        // Update toggle switch
+        const toggle = document.getElementById('autoRecordingToggle');
+        if (toggle) {
+            toggle.checked = mode === 'automatic';
+        }
+    }
+
+    function updateLastSessionTime() {
+        const lastSessionElement = document.getElementById('lastSessionTime');
+        if (lastSessionElement) {
+            const now = new Date();
+            lastSessionElement.textContent = now.toLocaleString();
+        }
+    }
+
+    function showCredentialSetupModal() {
+        const modal = new bootstrap.Modal(document.getElementById('credentialSetupModal'));
+        modal.show();
+    }
+
+    function showCredentialManageModal() {
+        const modal = new bootstrap.Modal(document.getElementById('credentialManageModal'));
+        modal.show();
+    }
+
+    function showPasswordPromptModal(action) {
+        document.getElementById('passwordAction').value = action;
+        const modalElement = document.getElementById('passwordPromptModal');
+        const modal = new bootstrap.Modal(modalElement);
+        
+        // Properly handle focus and accessibility
+        modalElement.addEventListener('shown.bs.modal', function () {
+            // Focus on password input when modal is fully shown
+            const passwordInput = document.getElementById('promptPassword');
+            if (passwordInput) {
+                passwordInput.focus();
+            }
+            // Remove aria-hidden when modal is shown
+            modalElement.removeAttribute('aria-hidden');
+        });
+        
+        modalElement.addEventListener('hidden.bs.modal', function () {
+            // Clear password field when modal is hidden
+            document.getElementById('promptPassword').value = '';
+            // Restore focus to toggle if needed
+            const toggle = document.getElementById('autoRecordingToggle');
+            if (toggle) {
+                toggle.focus();
+            }
+        });
+        
+        modal.show();
+    }
+
+    async function submitCredentials() {
+        const form = document.getElementById('credentialSetupForm');
+        const formData = new FormData(form);
+        
+        const privateKey = formData.get('private_key').trim();
+        const walletAddress = formData.get('wallet_address').trim();
+        const masterPassword = formData.get('master_password');
+        const confirmPassword = formData.get('confirm_password');
+
+        // Validate passwords match
+        if (masterPassword !== confirmPassword) {
+            showAlert('danger', 'Passwords do not match');
+            return;
+        }
+
+        // Validate password strength in real-time
+        const strengthResult = validatePasswordStrength(masterPassword);
+        if (!strengthResult.valid) {
+            showAlert('danger', 'Password not strong enough for production use');
+            return;
+        }
+
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const response = await fetch('/admin/store-credentials/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    private_key: privateKey,
+                    wallet_address: walletAddress,
+                    master_password: masterPassword
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', result.message);
+                bootstrap.Modal.getInstance(document.getElementById('credentialSetupModal')).hide();
+                
+                // Update UI to show credentials exist
+                updateCredentialsUI(true);
+                
+                // Clear form
+                form.reset();
+                
+                // Refresh page to update buttons
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                if (result.validation) {
+                    showPasswordValidation(result.validation);
+                }
+                showAlert('danger', result.error);
+            }
+        } catch (error) {
+            console.error('Credential storage error:', error);
+            showAlert('danger', 'Failed to store credentials');
+        }
+    }
+
+    async function handlePasswordPrompt() {
+        const action = document.getElementById('passwordAction').value;
+        const masterPassword = document.getElementById('promptPassword').value;
+
+        if (action === 'enable') {
+            await toggleRecordingMode('automatic', masterPassword);
+            bootstrap.Modal.getInstance(document.getElementById('passwordPromptModal')).hide();
+            document.getElementById('promptPassword').value = '';
+        }
+    }
+
+    function validatePasswordStrength(password) {
+        const validation = {
+            valid: false,
+            score: 0,
+            requirements: [],
+            warnings: []
+        };
+
+        // Length check (16+ for production)
+        if (password.length >= 16) {
+            validation.score += 25;
+            validation.requirements.push('✅ Length: 16+ characters');
+        } else {
+            validation.requirements.push('❌ Length: Need 16+ characters');
+        }
+
+        // Character requirements
+        const hasUpper = /[A-Z]/.test(password);
+        const hasLower = /[a-z]/.test(password);
+        const hasDigit = /\d/.test(password);
+        const hasSpecial = /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password);
+
+        if (hasUpper) validation.score += 15;
+        if (hasLower) validation.score += 15;
+        if (hasDigit) validation.score += 15;
+        if (hasSpecial) validation.score += 15;
+
+        // Common patterns check
+        const commonPatterns = ['123456', 'password', 'admin', 'qwerty', 'cognizant'];
+        const hasCommonPattern = commonPatterns.some(pattern => 
+            password.toLowerCase().includes(pattern)
+        );
+        
+        if (!hasCommonPattern) validation.score += 15;
+
+        validation.valid = validation.score >= 85;
+        return validation;
+    }
+
+    function showPasswordValidation(validation) {
+        const container = document.getElementById('passwordValidation');
+        if (container) {
+            container.innerHTML = `
+                <div class="alert alert-${validation.valid ? 'success' : 'warning'} mt-2">
+                    <h6>Password Strength: ${validation.strength}</h6>
+                    <ul class="mb-0">
+                        ${validation.requirements.map(req => `<li>${req}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+    }
+
+    function updateCredentialsUI(exist) {
+        const encryptionStatus = document.getElementById('encryptionStatus');
+        const securityPanel = document.getElementById('securityInfoPanel');
+        
+        if (encryptionStatus) {
+            encryptionStatus.textContent = exist ? 'AES-256 Encrypted' : 'Not Configured';
+            encryptionStatus.className = exist ? 'fw-bold text-cognizant-green' : 'fw-bold text-warning';
+        }
+        
+        if (securityPanel) {
+            securityPanel.style.display = exist ? 'block' : 'none';
+        }
+    }
+
+    async function deleteCredentials() {
+        if (!confirm('Are you sure you want to delete stored credentials? This will switch to manual mode.')) {
+            return;
+        }
+
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            const response = await fetch('/admin/delete-credentials/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify({
+                    confirm: true
+                })
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                showAlert('success', result.message);
+                bootstrap.Modal.getInstance(document.getElementById('credentialManageModal')).hide();
+                
+                // Update UI
+                updateCredentialsUI(false);
+                updateRecordingModeUI('manual', '🔒 No Credentials Stored');
+                
+                // Refresh page
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showAlert('danger', result.error);
+            }
+        } catch (error) {
+            console.error('Credential deletion error:', error);
+            showAlert('danger', 'Failed to delete credentials');
+        }
+    }
+
+
+
+
+</script>
+
+<!-- 🚀 CREDENTIAL SETUP MODAL -->
+<div class="modal fade" id="credentialSetupModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-cognizant-gradient text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Setup Automatic Recording Credentials
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Production Security Setup</h6>
+                    <p class="mb-0">Your MetaMask private key will be encrypted with military-grade AES-256 encryption. The credentials are never stored in plain text.</p>
+                </div>
+
+                <form id="credentialSetupForm">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-key me-1"></i>MetaMask Private Key
+                            </label>
+                            <input type="password" class="form-control" name="private_key" required
+                                   placeholder="Enter your MetaMask private key">
+                            <small class="text-muted">Export from MetaMask: Account Details → Export Private Key</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-wallet me-1"></i>Wallet Address
+                            </label>
+                            <input type="text" class="form-control" name="wallet_address" required
+                                   placeholder="0x...">
+                            <small class="text-muted">Your MetaMask wallet address</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-lock me-1"></i>Master Password
+                            </label>
+                            <input type="password" class="form-control" name="master_password" required
+                                   placeholder="Strong master password (16+ chars)"
+                                   oninput="showPasswordValidation(validatePasswordStrength(this.value))">
+                            <small class="text-muted">This encrypts your private key</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-lock me-1"></i>Confirm Password
+                            </label>
+                            <input type="password" class="form-control" name="confirm_password" required
+                                   placeholder="Confirm master password">
+                        </div>
+                        <div class="col-12">
+                            <div id="passwordValidation"></div>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="alert alert-warning mt-3">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Security Requirements</h6>
+                    <ul class="mb-0">
+                        <li>Password must be 16+ characters with uppercase, lowercase, numbers, and special characters</li>
+                        <li>Private key will be encrypted and stored locally</li>
+                        <li>Never share your master password</li>
+                        <li>Ensure your server environment is secure</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cognizant-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-cognizant-primary" onclick="submitCredentials()">
+                    <i class="fas fa-shield-alt me-1"></i>Store Credentials Securely
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🚀 CREDENTIAL MANAGEMENT MODAL -->
+<div class="modal fade" id="credentialManageModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-cognizant-gradient text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-cogs me-2"></i>
+                    Credential Management
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-grid gap-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-3x text-cognizant-green mb-3"></i>
+                            <h6>Credentials Status</h6>
+                            <p class="text-success">✅ AES-256 Encrypted credentials stored securely</p>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body">
+                            <h6><i class="fas fa-info-circle text-cognizant-blue me-2"></i>Security Information</h6>
+                            <ul class="mb-0 small">
+                                <li>Private key encrypted with PBKDF2 (100,000 iterations)</li>
+                                <li>Credentials stored in encrypted binary files</li>
+                                <li>Salt-based encryption for maximum security</li>
+                                <li>Session timeout: {{ auto_settings.session_timeout_minutes }} minutes</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cognizant-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>Close
+                </button>
+                <button type="button" class="btn btn-danger" onclick="deleteCredentials()">
+                    <i class="fas fa-trash me-1"></i>Delete Credentials
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 🚀 PASSWORD PROMPT MODAL -->
+<div class="modal fade" id="passwordPromptModal" tabindex="-1" data-bs-backdrop="static" 
+     aria-labelledby="passwordPromptModalLabel" aria-describedby="passwordPromptModalDesc">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-cognizant-gradient text-white">
+                <h5 class="modal-title" id="passwordPromptModalLabel">
+                    <i class="fas fa-key me-2"></i>
+                    Enter Master Password
+                </h5>
+            </div>
+            <div class="modal-body">
+                <p id="passwordPromptModalDesc">Enter your master password to enable automatic mode:</p>
+                <input type="hidden" id="passwordAction" value="">
+                <input type="password" class="form-control" id="promptPassword" 
+                       placeholder="Master password" aria-label="Master password">
+                <small class="text-muted">This will decrypt your stored credentials</small>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-cognizant-secondary" data-bs-dismiss="modal"
+                        onclick="document.getElementById('autoRecordingToggle').checked = false;">
+                    <i class="fas fa-times me-1"></i>Cancel
+                </button>
+                <button type="button" class="btn btn-cognizant-primary" id="enableAutoModeBtn" onclick="handlePasswordPrompt()">
+                    <i class="fas fa-unlock me-1"></i>Enable Auto Mode
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %} 

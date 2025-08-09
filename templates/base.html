@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CognizantTrust - Blockchain Transparency Platform{% endblock %}</title>
+    
+    <!-- Bootstrap 5.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts - Matching Cognizant's typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Authentic Cognizant Design System */
+        :root {
+            /* Cognizant Brand Colors (from actual website) */
+            --cognizant-navy: #1B1464;
+            --cognizant-navy-dark: #151250;
+            --cognizant-purple: #6B46C1;
+            --cognizant-blue: #3B82F6;
+            --cognizant-teal: #06B6D4;
+            --cognizant-cyan: #67E8F9;
+            --cognizant-orange: #FB923C;
+            
+            /* Gradient combinations (like Cognizant) */
+            --gradient-primary: linear-gradient(135deg, #1B1464 0%, #6B46C1 50%, #3B82F6 100%);
+            --gradient-hero: linear-gradient(135deg, #1B1464 0%, #4C1D95 25%, #7C3AED 50%, #EC4899 75%, #F59E0B 100%);
+            --gradient-accent: linear-gradient(90deg, #06B6D4 0%, #67E8F9 100%);
+            
+            /* Theme Colors - Light Mode Default */
+            --bg-primary: #FFFFFF;
+            --bg-secondary: #F8FAFC;
+            --bg-tertiary: #F1F5F9;
+            --text-primary: #0F172A;
+            --text-secondary: #334155;
+            --text-muted: #64748B;
+            --border-color: #E2E8F0;
+            --card-bg: #FFFFFF;
+            --table-bg: #FFFFFF;
+            --table-stripe: #F8FAFC;
+            
+            /* Neutral Colors */
+            --white: #FFFFFF;
+            --gray-50: #F8FAFC;
+            --gray-100: #F1F5F9;
+            --gray-200: #E2E8F0;
+            --gray-300: #CBD5E1;
+            --gray-400: #94A3B8;
+            --gray-500: #64748B;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1E293B;
+            --gray-900: #0F172A;
+            
+            /* Typography (Cognizant style) */
+            --font-primary: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-secondary: 'Inter', sans-serif;
+            
+            /* Spacing */
+            --space-xs: 0.25rem;
+            --space-sm: 0.5rem;
+            --space-md: 1rem;
+            --space-lg: 1.5rem;
+            --space-xl: 2rem;
+            --space-2xl: 3rem;
+            --space-3xl: 4rem;
+            
+            /* Border Radius */
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+            
+            /* Shadows (more sophisticated) */
+            --shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.08);
+            --shadow-md: 0 8px 16px rgba(15, 23, 42, 0.12);
+            --shadow-lg: 0 16px 32px rgba(15, 23, 42, 0.16);
+            --shadow-xl: 0 24px 48px rgba(15, 23, 42, 0.2);
+        }
+
+        /* Dark Mode Variables - High Contrast & Highly Visible */
+        [data-theme="dark"] {
+            /* Lighter dark backgrounds for better visibility */
+            --bg-primary: #121212;           /* GitHub-style dark background */
+            --bg-secondary: #1e1e1e;         /* Card/section backgrounds */
+            --bg-tertiary: #2d2d2d;          /* Hover states and elevated elements */
+            
+            /* High contrast text colors for maximum visibility */
+            --text-primary: #ffffff;         /* Pure white for main text - maximum contrast */
+            --text-secondary: #e1e1e1;       /* Very light gray for secondary text */
+            --text-muted: #b3b3b3;           /* Light gray for muted text - still visible */
+            
+            /* Bright interactive elements */
+            --border-color: #4a4a4a;         /* Visible borders */
+            --card-bg: #1e1e1e;              /* Distinct card backgrounds */
+            --table-bg: #1e1e1e;             /* Table background */
+            --table-stripe: #2a2a2a;         /* Alternating row color */
+            
+            /* High contrast form elements */
+            --form-bg: #2d2d2d;              /* Lighter form backgrounds */
+            --form-border: #555555;          /* Visible form borders */
+            --form-focus: #0ea5e9;           /* Bright focus state */
+            
+            /* Brighter grays for better visibility */
+            --gray-50: #f8f9fa;              /* Light backgrounds in dark mode */
+            --gray-100: #e9ecef;             /* Very light elements */
+            --gray-200: #dee2e6;             /* Light borders and dividers */
+            --gray-300: #ced4da;             /* Text on dark backgrounds */
+            --gray-700: #e1e1e1;             /* Navigation text */
+            
+            /* Enhanced shadows with more contrast */
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.6);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.7);
+            --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.8);
+            --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.9);
+        }
+
+        /* ============================================
+           UNIFIED DARK MODE SYSTEM - CLEAN & MANAGEABLE
+           ============================================ */
+        
+        [data-theme="dark"] {
+            /* === GLOBAL ELEMENTS === */
+            body {
+                background-color: #121212 !important;
+                color: #ffffff !important;
+            }
+            
+            .container, .container-fluid, section {
+                background-color: transparent !important;
+            }
+            
+            /* === CARDS & CONTAINERS === */
+            .card {
+                background: #1e1e1e !important;
+                border: 1px solid #4a4a4a !important;
+                color: #e1e1e1 !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+            }
+            
+            .card-header {
+                background: #2d2d2d !important;
+                border-bottom: 1px solid #4a4a4a !important;
+                color: #ffffff !important;
+            }
+            
+            .card-body {
+                background: #1e1e1e !important;
+                color: #e1e1e1 !important;
+            }
+            
+            .card-title {
+                color: #ffffff !important;
+            }
+            
+            .card-text {
+                color: #e1e1e1 !important;
+            }
+            
+            /* === STATISTICS CARDS (UNIVERSAL) === */
+            .stats-card {
+                background: #1e1e1e !important;
+                border: 1px solid #4a4a4a !important;
+                color: #ffffff !important;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4) !important;
+            }
+            
+            .stats-number {
+                color: #ffffff !important;
+                font-weight: 700 !important;
+            }
+            
+            .stats-label {
+                color: #e1e1e1 !important;
+            }
+            
+            /* === TABLES === */
+            .table {
+                color: #e1e1e1 !important;
+                background: #1e1e1e !important;
+            }
+            
+            .table th {
+                background: #2d2d2d !important;
+                color: #ffffff !important;
+                border-color: #4a4a4a !important;
+            }
+            
+            .table td {
+                border-color: #4a4a4a !important;
+                color: #e1e1e1 !important;
+            }
+            
+            .table-hover tbody tr:hover {
+                background-color: #2a2a2a !important;
+                color: #ffffff !important;
+            }
+            
+            /* === TABLE CONTAINERS === */
+            .table-container {
+                background: #1e1e1e !important;
+                border: 1px solid #4a4a4a !important;
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+            }
+            
+            /* === BOOTSTRAP OVERRIDES === */
+            .bg-white, .card-header.bg-white, div.bg-white {
+                background-color: #1e1e1e !important;
+            }
+            
+            .bg-light {
+                background-color: #2d2d2d !important;
+            }
+            
+            thead.bg-light {
+                background-color: #2d2d2d !important;
+            }
+            
+            thead.bg-light th {
+                color: #ffffff !important;
+            }
+            
+            /* === TEXT COLORS === */
+            h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+                color: #ffffff !important;
+            }
+            
+            p, span, div, label, .form-label, .lead, .small {
+                color: #e1e1e1 !important;
+            }
+            
+            /* === COGNIZANT BRAND COLORS FOR DARK MODE === */
+            .text-cognizant-navy {
+                color: #ffffff !important;
+            }
+            
+            .text-cognizant-blue {
+                color: #60a5fa !important;
+            }
+            
+            .text-cognizant-teal {
+                color: #22d3ee !important;
+            }
+            
+            .text-cognizant-green {
+                color: #4ade80 !important;
+            }
+            
+            .text-cognizant-orange {
+                color: #fb923c !important;
+            }
+            
+            .text-cognizant-purple {
+                color: #a855f7 !important;
+            }
+            
+            .text-cognizant-red {
+                color: #ef4444 !important;
+            }
+            
+            .text-gray-500, .text-gray-600, .text-gray-700 {
+                color: #e1e1e1 !important;
+            }
+            
+            .text-gray-400 {
+                color: #b3b3b3 !important;
+            }
+            
+            .text-gray-800, .text-gray-900 {
+                color: #ffffff !important;
+            }
+            
+            .text-muted {
+                color: #b3b3b3 !important;
+            }
+            
+            /* === FORMS === */
+            .form-control, .form-select, .form-check-input {
+                background: #2d2d2d !important;
+                border-color: #555555 !important;
+                color: #ffffff !important;
+            }
+            
+            .form-control:focus, .form-select:focus {
+                background: #2d2d2d !important;
+                border-color: #0ea5e9 !important;
+                color: #ffffff !important;
+                box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.25) !important;
+            }
+            
+            .input-group-text {
+                background: #2d2d2d !important;
+                border-color: #555555 !important;
+                color: #e1e1e1 !important;
+            }
+            
+            /* === NAVIGATION === */
+            .navbar-nav .nav-link {
+                color: #e1e1e1 !important;
+            }
+            
+            .navbar-nav .nav-link:hover {
+                color: #ffffff !important;
+                background-color: #2d2d2d !important;
+            }
+            
+            .navbar-brand {
+                color: #ffffff !important;
+            }
+            
+            /* === DROPDOWNS === */
+            .dropdown-menu {
+                background: #1e1e1e !important;
+                border-color: #4a4a4a !important;
+            }
+            
+            .dropdown-item {
+                color: #e1e1e1 !important;
+            }
+            
+            .dropdown-item:hover {
+                background: #2d2d2d !important;
+                color: #ffffff !important;
+            }
+            
+            /* === MODALS === */
+            .modal-content {
+                background: #1e1e1e !important;
+                color: #ffffff !important;
+                border: 1px solid #4a4a4a !important;
+            }
+            
+            .modal-header {
+                border-bottom: 1px solid #4a4a4a !important;
+                background: #2d2d2d !important;
+            }
+            
+            .modal-footer {
+                border-top: 1px solid #4a4a4a !important;
+                background: #2d2d2d !important;
+            }
+            
+            .modal-title {
+                color: #ffffff !important;
+            }
+            
+            .modal-body {
+                color: #e1e1e1 !important;
+            }
+            
+            /* === ALERTS === */
+            .alert {
+                border: 1px solid #4a4a4a !important;
+                background: #1e1e1e !important;
+                color: #e1e1e1 !important;
+            }
+            
+            .alert-info {
+                background: rgba(59, 130, 246, 0.1) !important;
+                border-color: #3b82f6 !important;
+                color: #ffffff !important;
+            }
+            
+            .alert-success {
+                background: rgba(34, 197, 94, 0.1) !important;
+                border-color: #22c55e !important;
+                color: #ffffff !important;
+            }
+            
+            .alert-warning {
+                background: rgba(251, 146, 60, 0.1) !important;
+                border-color: #fb923c !important;
+                color: #ffffff !important;
+            }
+            
+            .alert-danger {
+                background: rgba(239, 68, 68, 0.1) !important;
+                border-color: #ef4444 !important;
+                color: #ffffff !important;
+            }
+            
+            /* === PAGINATION === */
+            .page-item .page-link {
+                background: #1e1e1e !important;
+                border-color: #4a4a4a !important;
+                color: #e1e1e1 !important;
+            }
+            
+            .page-item.active .page-link {
+                background: #3b82f6 !important;
+                border-color: #3b82f6 !important;
+                color: #ffffff !important;
+            }
+            
+            /* === BADGES === */
+            .badge {
+                color: #ffffff !important;
+            }
+            
+            /* === BREADCRUMBS === */
+            .breadcrumb {
+                background: #1e1e1e !important;
+            }
+            
+            .breadcrumb-item a {
+                color: #e1e1e1 !important;
+            }
+            
+            /* === BUTTONS === */
+            .btn-primary, .btn-cognizant-primary {
+                background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
+                border: none !important;
+                box-shadow: 0 2px 8px rgba(59, 130, 246, 0.5) !important;
+                color: #ffffff !important;
+            }
+            
+            .btn-primary:hover, .btn-cognizant-primary:hover {
+                background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%) !important;
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.6) !important;
+            }
+            
+            .btn-outline-primary {
+                border-color: var(--cognizant-blue);
+                color: var(--cognizant-blue);
+                background: transparent;
+            }
+            
+            .btn-outline-primary:hover {
+                background: var(--cognizant-blue);
+                border-color: var(--cognizant-blue);
+                color: var(--white);
+            }
+            
+            /* Enhanced card styling */
+            .card {
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            }
+            
+            .card:hover {
+                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+                border-color: var(--gray-300);
+            }
+            
+            /* Better table styling */
+            .table-hover tbody tr:hover {
+                background-color: var(--table-stripe);
+                color: var(--text-primary);
+            }
+            
+            /* Enhanced navigation styling */
+            .navbar-nav .nav-link {
+                color: #e1e1e1 !important;
+            }
+            
+            .navbar-nav .nav-link:hover {
+                color: #ffffff !important;
+                background-color: #2d2d2d !important;
+            }
+            
+            .navbar-brand {
+                color: #ffffff !important;
+            }
+            
+            /* Force high contrast for all text elements with maximum specificity */
+            h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {
+                color: #ffffff !important;
+            }
+            
+            p, span, div, label, .form-label, .card-text, .lead, .small {
+                color: #e1e1e1 !important;
+            }
+            
+            .card-title, .modal-title, .navbar-brand, .nav-link {
+                color: #ffffff !important;
+            }
+            
+            .card-text, .modal-body, .list-group-item {
+                color: #e1e1e1 !important;
+            }
+            
+            /* All Bootstrap text utilities */
+            .text-muted {
+                color: #b3b3b3 !important;
+            }
+            
+            .text-dark {
+                color: #e1e1e1 !important;
+            }
+            
+            /* Ensure all cards and components have dark backgrounds */
+            .card, .modal-content, .list-group-item {
+                background: #1e1e1e !important;
+                border-color: #4a4a4a !important;
+                color: #e1e1e1 !important;
+            }
+            
+            /* Fix dropdown menus */
+            .dropdown-menu {
+                background: #1e1e1e !important;
+                border-color: #4a4a4a !important;
+            }
+            
+            .dropdown-item {
+                color: #e1e1e1 !important;
+            }
+            
+            .dropdown-item:hover {
+                background: #2d2d2d !important;
+                color: #ffffff !important;
+            }
+            
+            /* Statistics cards styling */
+            .stats-card, .stat-card {
+                background: #1e1e1e !important;
+                border: 1px solid #4a4a4a !important;
+                color: #ffffff !important;
+            }
+            
+            .stats-number, .stat-number, .display-4, .h1, .h2 {
+                color: #ffffff !important;
+                font-weight: 700 !important;
+            }
+            
+            /* Icon colors for better visibility */
+            .fas, .fa, .bi {
+                color: inherit !important;
+            }
+            
+            /* Table improvements - HIGH SPECIFICITY */
+            html[data-theme="dark"] .table,
+            html[data-theme="dark"] .table-responsive .table,
+            html[data-theme="dark"] .table-container .table {
+                color: #e1e1e1 !important;
+                background-color: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] .table th,
+            html[data-theme="dark"] .table-responsive .table th,
+            html[data-theme="dark"] .table-container .table th {
+                color: #ffffff !important;
+                background-color: #2d2d2d !important;
+                border-color: #4a4a4a !important;
+            }
+            
+            html[data-theme="dark"] .table td,
+            html[data-theme="dark"] .table-responsive .table td,
+            html[data-theme="dark"] .table-container .table td {
+                color: #e1e1e1 !important;
+                border-color: #4a4a4a !important;
+                background-color: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] .table tbody tr,
+            html[data-theme="dark"] .table-responsive .table tbody tr,
+            html[data-theme="dark"] .table-container .table tbody tr {
+                background-color: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] .table tbody tr:hover,
+            html[data-theme="dark"] .table-responsive .table tbody tr:hover,
+            html[data-theme="dark"] .table-container .table tbody tr:hover {
+                background-color: var(--table-stripe) !important;
+            }
+            
+            html[data-theme="dark"] .table-responsive,
+            html[data-theme="dark"] .table-container {
+                background-color: var(--card-bg) !important;
+            }
+            
+            /* Force all table elements to follow dark mode */
+            html[data-theme="dark"] table,
+            html[data-theme="dark"] table tr,
+            html[data-theme="dark"] table td,
+            html[data-theme="dark"] table th {
+                background-color: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+                border-color: #4a4a4a !important;
+            }
+            
+            html[data-theme="dark"] table thead th {
+                background-color: #2d2d2d !important;
+                color: #ffffff !important;
+            }
+            
+            /* EXTRA STRONG table rules for stubborn templates */
+            html[data-theme="dark"] .card-body .table tbody tr,
+            html[data-theme="dark"] .table-responsive .table tbody tr {
+                background-color: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] .card-body .table tbody td,
+            html[data-theme="dark"] .table-responsive .table tbody td {
+                background-color: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Override any cognizant light backgrounds in dark mode */
+            html[data-theme="dark"] .bg-cognizant-light {
+                background-color: var(--card-bg) !important;
+            }
+            
+            /* Fix spending category cards in dark mode - TARGET EXACT ELEMENT */
+            html[data-theme="dark"] .bg-secondary,
+            html[data-theme="dark"] .card-body .bg-secondary,
+            html[data-theme="dark"] div.bg-secondary,
+            html[data-theme="dark"] .d-flex.bg-secondary,
+            html[data-theme="dark"] div.d-flex.justify-content-between.bg-secondary {
+                background-color: #1e1e1e !important;
+                background: #1e1e1e !important;
+                color: #ffffff !important;
+                border: 1px solid #4a4a4a !important;
+            }
+            
+            /* Nuclear option - force all Bootstrap bg-secondary */
+            html[data-theme="dark"] *[class*="bg-secondary"] {
+                background-color: #1e1e1e !important;
+                background: #1e1e1e !important;
+            }
+            
+            html[data-theme="dark"] .bg-secondary h6,
+            html[data-theme="dark"] .bg-secondary h5,
+            html[data-theme="dark"] .bg-secondary h4,
+            html[data-theme="dark"] .bg-secondary h3 {
+                color: #ffffff !important;
+                font-weight: 600 !important;
+            }
+            
+            html[data-theme="dark"] .bg-secondary .text-muted,
+            html[data-theme="dark"] .bg-secondary small {
+                color: #e1e1e1 !important;
+            }
+            
+            /* Fix all text colors in dark mode secondary backgrounds - FORCE WHITE */
+            html[data-theme="dark"] .bg-secondary *:not(.text-success) {
+                color: #ffffff !important;
+            }
+            
+            html[data-theme="dark"] .bg-secondary small,
+            html[data-theme="dark"] .bg-secondary span:not(.text-success) {
+                color: #e1e1e1 !important;
+            }
+            
+            /* Ensure success text stays bright green */
+            html[data-theme="dark"] .bg-secondary .text-success,
+            html[data-theme="dark"] .bg-secondary h5.text-success {
+                color: #10b981 !important;
+                font-weight: 700 !important;
+            }
+            
+            /* NUCLEAR OPTION - Force all table elements in dark mode */
+            html[data-theme="dark"] .table tbody tr td,
+            html[data-theme="dark"] .table tbody tr,
+            html[data-theme="dark"] tbody tr td,
+            html[data-theme="dark"] tbody tr {
+                background-color: var(--card-bg) !important;
+                background: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Override any inherited light colors */
+            html[data-theme="dark"] .table tbody tr:nth-child(odd),
+            html[data-theme="dark"] .table tbody tr:nth-child(even) {
+                background-color: var(--card-bg) !important;
+                background: var(--card-bg) !important;
+            }
+            
+            /* Override Bootstrap striped tables */
+            html[data-theme="dark"] .table-striped tbody tr:nth-of-type(odd) {
+                background-color: var(--card-bg) !important;
+            }
+            
+            /* Override any card body table backgrounds */
+            html[data-theme="dark"] .card .table,
+            html[data-theme="dark"] .card-body .table {
+                background-color: var(--card-bg) !important;
+            }
+            
+            /* SMOOTH CARD HOVER ANIMATIONS */
+            .card, .stats-card, .navigation-card {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+                transform: translateY(0) !important;
+            }
+            
+            .card:hover, .stats-card:hover, .navigation-card:hover {
+                transform: translateY(-8px) !important;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+            }
+            
+            /* Light mode card hover effects */
+            html:not([data-theme="dark"]) .card:hover,
+            html:not([data-theme="dark"]) .stats-card:hover,
+            html:not([data-theme="dark"]) .navigation-card:hover {
+                box-shadow: 0 25px 50px rgba(37, 99, 235, 0.15) !important;
+            }
+            
+            /* Dark mode card hover effects */
+            html[data-theme="dark"] .card:hover,
+            html[data-theme="dark"] .stats-card:hover,
+            html[data-theme="dark"] .navigation-card:hover {
+                box-shadow: 0 25px 50px rgba(255, 255, 255, 0.1) !important;
+            }
+            
+            /* SMOOTH BUTTON HOVER ANIMATIONS */
+            .btn {
+                transition: all 0.2s ease-in-out !important;
+                transform: scale(1) !important;
+            }
+            
+            .btn:hover {
+                transform: scale(1.05) translateY(-2px) !important;
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+            }
+            
+            /* SMOOTH FORM ELEMENT ANIMATIONS */
+            .form-control, .form-select {
+                transition: all 0.2s ease-in-out !important;
+            }
+            
+            .form-control:focus, .form-select:focus {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.15) !important;
+            }
+            
+            /* SMOOTH BADGE ANIMATIONS */
+            .badge {
+                transition: all 0.2s ease-in-out !important;
+            }
+            
+            .badge:hover {
+                transform: scale(1.1) !important;
+            }
+            
+            /* ULTIMATE OVERRIDE - Target specific table ID and classes */
+            html[data-theme="dark"] tr[id*="spending-"],
+            html[data-theme="dark"] tr[id*="donation-"],
+            html[data-theme="dark"] #spending-table tbody tr,
+            html[data-theme="dark"] .social-spending table tbody tr {
+                background-color: var(--card-bg) !important;
+                background: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] tr[id*="spending-"] td,
+            html[data-theme="dark"] tr[id*="donation-"] td {
+                background-color: var(--card-bg) !important;
+                background: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* FORCE OVERRIDE ANY POSSIBLE BOOTSTRAP/INLINE STYLES */
+            html[data-theme="dark"] .table > tbody > tr > td,
+            html[data-theme="dark"] .table > tbody > tr,
+            html[data-theme="dark"] table > tbody > tr > td,
+            html[data-theme="dark"] table > tbody > tr {
+                background-color: var(--card-bg) !important;
+                background: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Override specific Bootstrap table classes */
+            html[data-theme="dark"] .table-hover tbody tr:hover,
+            html[data-theme="dark"] .table tbody tr:hover {
+                background-color: var(--table-stripe) !important;
+                background: var(--table-stripe) !important;
+            }
+            html[data-theme="dark"] table tbody tr,
+            html[data-theme="dark"] .table tbody tr,
+            html[data-theme="dark"] .table-responsive table tbody tr,
+            html[data-theme="dark"] .card-body table tbody tr {
+                background: var(--card-bg) !important;
+                background-color: var(--card-bg) !important;
+            }
+            
+            html[data-theme="dark"] table tbody td,
+            html[data-theme="dark"] .table tbody td,
+            html[data-theme="dark"] .table-responsive table tbody td,
+            html[data-theme="dark"] .card-body table tbody td {
+                background: var(--card-bg) !important;
+                background-color: var(--card-bg) !important;
+                color: var(--text-primary) !important;
+            }
+            
+            /* Form elements improvements */
+            .form-control, .form-select, .form-check-input {
+                background: #2d2d2d !important;
+                border-color: #555555 !important;
+                color: #ffffff !important;
+            }
+            
+            .form-control:focus, .form-select:focus {
+                background: #2d2d2d !important;
+                border-color: #0ea5e9 !important;
+                color: #ffffff !important;
+                box-shadow: 0 0 0 0.25rem rgba(14, 165, 233, 0.25) !important;
+            }
+            
+            /* Input group improvements */
+            .input-group-text {
+                background: #2d2d2d !important;
+                border-color: #555555 !important;
+                color: #e1e1e1 !important;
+            }
+            
+            /* Pagination improvements */
+            .page-item .page-link {
+                background: #1e1e1e !important;
+                border-color: #4a4a4a !important;
+                color: #e1e1e1 !important;
+            }
+            
+            .page-item.active .page-link {
+                background: #3b82f6 !important;
+                border-color: #3b82f6 !important;
+                color: #ffffff !important;
+            }
+            
+            /* Badge improvements */
+            .badge {
+                color: #ffffff !important;
+            }
+            
+            /* Breadcrumb improvements */
+            .breadcrumb {
+                background: #1e1e1e !important;
+            }
+            
+            .breadcrumb-item a {
+                color: #e1e1e1 !important;
+            }
+            
+            /* CRITICAL: Override all custom Cognizant color classes for dark mode */
+            .text-cognizant-navy {
+                color: #ffffff !important;
+            }
+            
+            .text-cognizant-blue {
+                color: #60a5fa !important; /* Bright blue for dark mode */
+            }
+            
+            .text-cognizant-teal {
+                color: #22d3ee !important; /* Bright teal for dark mode */
+            }
+            
+            .text-cognizant-green {
+                color: #4ade80 !important; /* Bright green for dark mode */
+            }
+            
+            .text-cognizant-orange {
+                color: #fb923c !important; /* Bright orange for dark mode */
+            }
+            
+            .text-cognizant-purple {
+                color: #a855f7 !important; /* Bright purple for dark mode */
+            }
+            
+            .text-cognizant-red {
+                color: #ef4444 !important; /* Bright red for dark mode */
+            }
+            
+            /* Override all gray text classes for dark mode */
+            .text-gray-500, .text-gray-600, .text-gray-700 {
+                color: #e1e1e1 !important;
+            }
+            
+            .text-gray-400 {
+                color: #b3b3b3 !important;
+            }
+            
+            .text-gray-800, .text-gray-900 {
+                color: #ffffff !important;
+            }
+            
+            /* Override Bootstrap muted classes */
+            .text-muted, .small {
+                color: #b3b3b3 !important;
+            }
+            
+            /* Ensure stats numbers are always highly visible */
+            .stats-number {
+                color: #ffffff !important;
+            }
+            
+            /* CRITICAL: Fix hardcoded background classes that break dark mode */
+            .bg-white, .card-header.bg-white, div.bg-white {
+                background-color: #1e1e1e !important;
+            }
+            
+            .bg-light {
+                background-color: #2d2d2d !important;
+            }
+            
+            /* Fix any white opacity backgrounds */
+            .bg-white.bg-opacity-90 {
+                background-color: rgba(30, 30, 30, 0.95) !important;
+            }
+            
+            /* Fix table headers with light backgrounds */
+            thead.bg-light {
+                background-color: #2d2d2d !important;
+            }
+            
+            thead.bg-light th {
+                color: #ffffff !important;
+            }
+            
+            /* Fix rounded circle icons with white backgrounds */
+            .bg-white.rounded-circle {
+                background-color: #2d2d2d !important;
+                border: 1px solid #4a4a4a !important;
+            }
+            
+            /* NUCLEAR OPTION: Force dark mode with maximum specificity */
+            html[data-theme="dark"] body {
+                background-color: #121212 !important;
+                color: #ffffff !important;
+            }
+            
+            html[data-theme="dark"] .card-header {
+                background-color: #1e1e1e !important;
+                color: #ffffff !important;
+            }
+            
+            html[data-theme="dark"] .container, 
+            html[data-theme="dark"] .container-fluid,
+            html[data-theme="dark"] section {
+                background-color: transparent !important;
+            }
+            
+            /* Force ALL white backgrounds to dark in dark mode */
+            html[data-theme="dark"] *[class*="bg-white"],
+            html[data-theme="dark"] *[style*="background: white"],
+            html[data-theme="dark"] *[style*="background-color: white"] {
+                background-color: #1e1e1e !important;
+            }
+            
+            /* Better footer styling */
+            .bg-light {
+                background-color: var(--bg-secondary) !important;
+            }
+            
+            /* Alert improvements */
+            .alert {
+                border: 1px solid var(--border-color);
+                background: var(--card-bg);
+                color: var(--text-primary);
+            }
+            
+            .alert-info {
+                background: rgba(59, 130, 246, 0.1);
+                border-color: var(--cognizant-blue);
+                color: var(--text-primary);
+            }
+            
+            .alert-success {
+                background: rgba(34, 197, 94, 0.1);
+                border-color: #22c55e;
+                color: var(--text-primary);
+            }
+            
+            .alert-warning {
+                background: rgba(251, 146, 60, 0.1);
+                border-color: #fb923c;
+                color: var(--text-primary);
+            }
+            
+            .alert-danger {
+                background: rgba(239, 68, 68, 0.1);
+                border-color: #ef4444;
+                color: var(--text-primary);
+            }
+        }
+
+        /* Theme Transition Animation */
+        *, *::before, *::after {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+        }
+        
+        /* Global Styles */
+        * {
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-primary);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+        }
+        
+        /* Header Styles - Matching Cognizant exactly */
+        .cognizant-header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            font-weight: 700;
+            font-size: 1.75rem;
+            color: var(--cognizant-navy) !important;
+            text-decoration: none;
+            letter-spacing: -0.025em;
+        }
+        
+        /* Logo styling for the actual image */
+        .navbar-brand img, .footer img {
+            transition: transform 0.3s ease;
+        }
+        
+        .navbar-brand:hover img {
+            transform: scale(1.05);
+        }
+        
+        .navbar-nav .nav-link {
+            font-weight: 500;
+            color: var(--gray-700) !important;
+            padding: var(--space-sm) var(--space-lg) !important;
+            margin: 0 var(--space-xs);
+            border-radius: var(--radius-sm);
+            transition: all 0.3s ease;
+            position: relative;
+            font-family: var(--font-secondary);
+        }
+        
+        .navbar-nav .nav-link:hover {
+            background-color: var(--gray-50);
+            color: var(--cognizant-navy) !important;
+        }
+        
+        .navbar-nav .nav-link.active {
+            background: var(--gradient-primary);
+            color: var(--white) !important;
+        }
+        
+        /* Button Styles - Cognizant authentic */
+        .btn {
+            font-weight: 600;
+            padding: var(--space-md) var(--space-xl);
+            border-radius: var(--radius-md);
+            border: none;
+            font-size: 0.95rem;
+            letter-spacing: 0.025em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-sm);
+            font-family: var(--font-secondary);
+            text-transform: none;
+        }
+        
+        .btn-cognizant-primary {
+            background: var(--gradient-accent);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+            border: 2px solid transparent;
+        }
+        
+        .btn-cognizant-primary:hover {
+            background: linear-gradient(90deg, #0891B2 0%, #0284C7 100%);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .btn-cognizant-secondary {
+            background-color: transparent;
+            color: var(--cognizant-navy);
+            border: 2px solid var(--cognizant-navy);
+        }
+        
+        .btn-cognizant-secondary:hover {
+            background: var(--gradient-primary);
+            color: var(--white);
+            border-color: transparent;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: var(--white);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        /* Hero Sections - Cognizant style */
+        .hero-gradient {
+            background: var(--gradient-hero);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-gradient::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.1) 50%, rgba(6,182,212,0.2) 100%);
+            clip-path: polygon(30% 0%, 100% 0%, 100% 100%, 0% 100%);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Card Styles */
+        .card {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            transition: all 0.4s ease;
+            background-color: var(--card-bg);
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            box-shadow: var(--shadow-xl);
+            transform: translateY(-8px);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            border-bottom: 1px solid var(--gray-200);
+            padding: var(--space-lg);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        }
+        
+        .card-body {
+            padding: var(--space-lg);
+        }
+        
+        /* Stats Cards - Cognizant style */
+        .stats-card {
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            text-align: center;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+            min-height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient-accent);
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-12px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--cognizant-teal);
+        }
+        
+        .stats-number {
+            font-size: 2.75rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: var(--space-sm);
+            font-family: var(--font-primary);
+            line-height: 1.1;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* Responsive font sizes for stats numbers */
+        .stats-number.currency-amount {
+            font-size: 2.2rem;
+        }
+        
+        .stats-label {
+            color: var(--gray-600);
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-family: var(--font-secondary);
+        }
+        
+        /* Form Styles */
+        .form-control {
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: var(--space-md);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-family: var(--font-secondary);
+        }
+        
+        [data-theme="dark"] .form-control {
+            background-color: var(--form-bg);
+            border-color: var(--form-border);
+        }
+        
+        .form-control:focus {
+            border-color: var(--cognizant-teal);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+            background-color: var(--card-bg);
+        }
+        
+        [data-theme="dark"] .form-control:focus {
+            background-color: var(--form-bg);
+            border-color: var(--cognizant-teal);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: var(--space-sm);
+            font-family: var(--font-secondary);
+        }
+        
+        /* Alert Styles */
+        .alert {
+            border: none;
+            border-radius: var(--radius-md);
+            padding: var(--space-lg);
+            margin-bottom: var(--space-lg);
+            font-weight: 500;
+        }
+        
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: #047857;
+            border-left: 4px solid #10B981;
+        }
+        
+        .alert-info {
+            background-color: rgba(6, 182, 212, 0.1);
+            color: #0891B2;
+            border-left: 4px solid var(--cognizant-teal);
+        }
+        
+        .alert-warning {
+            background-color: rgba(251, 146, 60, 0.1);
+            color: #C2410C;
+            border-left: 4px solid var(--cognizant-orange);
+        }
+        
+        /* Table Styles */
+        .table {
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            background-color: var(--table-bg);
+        }
+        
+        .table thead th {
+            background: var(--gradient-primary);
+            color: var(--white);
+            font-weight: 600;
+            padding: var(--space-lg);
+            border: none;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+        }
+        
+        .table tbody td {
+            padding: var(--space-lg);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+            color: var(--text-primary);
+        }
+        
+        .table tbody tr:hover {
+            background-color: var(--table-stripe);
+        }
+        
+        /* Badge Styles */
+        .badge {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+        }
+        
+        .badge.bg-primary {
+            background: var(--gradient-primary) !important;
+        }
+        
+        /* Footer Styles */
+        .cognizant-footer {
+            background: var(--gradient-primary);
+            color: var(--gray-300);
+            padding: var(--space-3xl) 0;
+            margin-top: var(--space-2xl);
+            position: relative;
+        }
+        
+        .cognizant-footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: linear-gradient(135deg, transparent 0%, rgba(255,255,255,0.05) 100%);
+        }
+        
+        .cognizant-footer .container {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .cognizant-footer a {
+            color: var(--gray-300);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .cognizant-footer a:hover {
+            color: var(--cognizant-cyan);
+        }
+        
+        /* Utility Classes */
+        .bg-cognizant-gradient {
+            background: var(--gradient-primary) !important;
+        }
+        
+        .bg-cognizant-hero {
+            background: var(--gradient-hero) !important;
+        }
+        
+        .text-cognizant-navy {
+            color: var(--cognizant-navy) !important;
+        }
+        
+        .text-cognizant-teal {
+            color: var(--cognizant-teal) !important;
+        }
+        
+        .text-cognizant-blue {
+            color: var(--cognizant-blue) !important;
+        }
+        
+        .text-cognizant-orange {
+            color: var(--cognizant-orange) !important;
+        }
+        
+        .text-cognizant-purple {
+            color: var(--cognizant-purple) !important;
+        }
+        
+        .text-cognizant-red {
+            color: #dc2626 !important;
+        }
+        
+        .text-cognizant-green {
+            color: #10B981 !important;
+        }
+        
+        .bg-cognizant-light {
+            background-color: var(--gray-50) !important;
+        }
+        
+        .border-cognizant {
+            border-color: var(--cognizant-teal) !important;
+        }
+        
+        /* Typography improvements */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-primary);
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        
+        p, span, div {
+            font-family: var(--font-secondary);
+        }
+        
+        .display-1, .display-2, .display-3, .display-4 {
+            font-family: var(--font-primary);
+            font-weight: 800;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            
+            .navbar-brand img {
+                height: 35px !important;
+            }
+            
+            .stats-number {
+                font-size: 2rem;
+            }
+            
+            .stats-number.currency-amount {
+                font-size: 1.6rem;
+            }
+            
+            .btn {
+                padding: var(--space-sm) var(--space-lg);
+                font-size: 0.9rem;
+            }
+        }
+        
+        /* Additional responsive breakpoint for very long numbers */
+        @media (max-width: 1200px) {
+            .stats-number.currency-amount {
+                font-size: 2rem;
+            }
+        }
+        
+        /* Animation and Transitions */
+        .fade-in {
+            animation: fadeIn 0.8s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .slide-up {
+            animation: slideUp 1s ease-out;
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header with Authentic Cognizant Design -->
+    <header class="cognizant-header">
+        <nav class="navbar navbar-expand-lg py-3">
+            <div class="container">
+                <a class="navbar-brand" href="{% url 'donations:home' %}">
+                    {% load static %}
+                    <img src="{% static 'images/logo.png' %}" alt="CognizantTrust Logo" class="me-3" style="height: 45px; width: auto;">
+                    <span>CognizantTrust</span>
+                </a>
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}" 
+                               href="{% url 'donations:home' %}">
+                                <i class="fas fa-home me-1"></i>Home
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.resolver_match.url_name == 'public_audit' %}active{% endif %}" 
+                               href="{% url 'donations:public_audit' %}">
+                                <i class="fas fa-search me-1"></i>Public Trails
+                            </a>
+                        </li>
+                        
+                        {% if user.is_authenticated %}
+                            <!-- User is logged in -->
+                            {% if user.is_staff %}
+                                <!-- Admin User -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user-shield me-1"></i>Admin
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'donations:admin_dashboard' %}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'donations:user_logout' %}">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            {% else %}
+                                <!-- Regular User -->
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                        <i class="fas fa-user me-1"></i>{{ user.get_full_name|default:user.username }}
+                                    </a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="{% url 'donations:user_dashboard' %}">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Menu
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{% url 'donations:user_donate' %}">
+                                            <i class="fas fa-heart me-2"></i>Make Donation
+                                        </a></li>
+                                        <li><a class="dropdown-item" href="{% url 'donations:user_profile' %}">
+                                            <i class="fas fa-user-edit me-2"></i>Edit Profile
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" href="{% url 'donations:user_logout' %}">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            {% endif %}
+                        {% else %}
+                            <!-- User is not logged in -->
+                            <li class="nav-item">
+                                <a class="nav-link {% if request.resolver_match.url_name == 'user_login' %}active{% endif %}" 
+                                   href="{% url 'donations:user_login' %}">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Sign In
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-cognizant-primary text-white ms-2 {% if request.resolver_match.url_name == 'user_register' %}active{% endif %}" 
+                                   href="{% url 'donations:user_register' %}">
+                                    <i class="fas fa-user-plus me-1"></i>Sign Up
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="cognizant-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="{% static 'images/logo.png' %}" alt="CognizantTrust Logo" class="me-3" style="height: 45px; width: auto;">
+                        <h4 class="mb-0 text-white">CognizantTrust</h4>
+                    </div>
+                    <p class="mb-4 lead">Engineering trust through blockchain transparency. Built with Cognizant's expertise in digital transformation and enterprise technology solutions.</p>
+                    <div class="d-flex gap-3">
+                        <a href="#" class="text-decoration-none fs-4">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none fs-4">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-decoration-none fs-4">
+                            <i class="fab fa-github"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="text-white mb-3">Platform</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="{% url 'donations:home' %}">Make Donation</a></li>
+                        <li class="mb-2"><a href="{% url 'donations:public_audit' %}">View Audit Trail</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-3">
+                    <h5 class="text-white mb-3">Technology</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="#">Ethereum Blockchain</a></li>
+                        <li class="mb-2"><a href="#">Smart Contracts</a></li>
+                        <li class="mb-2"><a href="#">MetaMask Integration</a></li>
+                        <li class="mb-2"><a href="#">Enterprise Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4" style="border-color: rgba(255,255,255,0.2);">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; {% now "Y" %} CognizantTrust. Powered by Cognizant technology.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <small>Built on Ethereum Sepolia Testnet</small>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Web3.js for blockchain interactions -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    
+    <!-- Triple-Click Dark Mode Toggle -->
+    <script>
+        // Triple-click detection for dark/light mode toggle
+        let clickCount = 0;
+        let clickTimer = null;
+        const CLICK_THRESHOLD = 3;
+        const CLICK_TIMEOUT = 1000; // 1 second to complete triple-click
+        
+        // Initialize theme from localStorage or default to light
+        function initTheme() {
+            const savedTheme = localStorage.getItem('cognizant-theme');
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+            
+            document.documentElement.setAttribute('data-theme', theme);
+            
+            // Optional: Show a subtle hint on first visit
+            if (!savedTheme) {
+                setTimeout(() => {
+                    showThemeHint();
+                }, 2000);
+            }
+        }
+        
+        // Toggle between light and dark themes
+        function toggleTheme() {
+            const currentTheme = document.documentElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('cognizant-theme', newTheme);
+            
+            // Show theme change notification
+            showThemeNotification(newTheme);
+        }
+        
+        // Show a subtle notification when theme changes
+        function showThemeNotification(theme) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: var(--cognizant-blue);
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                z-index: 9999;
+                font-family: var(--font-secondary);
+                font-size: 14px;
+                font-weight: 500;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            const icon = theme === 'dark' ? '🌙' : '☀️';
+            const modeText = theme === 'dark' ? 'Dark' : 'Light';
+            notification.innerHTML = `${icon} ${modeText} mode activated`;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+        
+        // Show hint about triple-click feature (only on first visit)
+        function showThemeHint() {
+            const hint = document.createElement('div');
+            hint.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(100%);
+                background: var(--cognizant-purple);
+                color: white;
+                padding: 10px 16px;
+                border-radius: 20px;
+                font-family: var(--font-secondary);
+                font-size: 13px;
+                z-index: 9999;
+                transition: transform 0.4s ease;
+                cursor: pointer;
+            `;
+            hint.innerHTML = '💡 Tip: Triple-click anywhere to toggle dark/light mode';
+            
+            document.body.appendChild(hint);
+            
+            // Animate in
+            setTimeout(() => {
+                hint.style.transform = 'translateX(-50%) translateY(0)';
+            }, 500);
+            
+            // Remove after 5 seconds or on click
+            const removeHint = () => {
+                hint.style.transform = 'translateX(-50%) translateY(100%)';
+                setTimeout(() => {
+                    if (document.body.contains(hint)) {
+                        document.body.removeChild(hint);
+                    }
+                }, 400);
+            };
+            
+            hint.addEventListener('click', removeHint);
+            setTimeout(removeHint, 5000);
+        }
+        
+        // Triple-click detection
+        function handleClick(event) {
+            // Don't trigger on interactive elements
+            if (event.target.tagName.match(/^(A|BUTTON|INPUT|SELECT|TEXTAREA)$/i)) {
+                return;
+            }
+            
+            clickCount++;
+            
+            // Clear existing timer
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+            }
+            
+            // Set timer to reset click count
+            clickTimer = setTimeout(() => {
+                clickCount = 0;
+            }, CLICK_TIMEOUT);
+            
+            // Check if we've reached the threshold
+            if (clickCount === CLICK_THRESHOLD) {
+                clickCount = 0;
+                clearTimeout(clickTimer);
+                toggleTheme();
+            }
+        }
+        
+        // Initialize theme on page load
+        document.addEventListener('DOMContentLoaded', initTheme);
+        
+        // Add click listener to document
+        document.addEventListener('click', handleClick);
+        
+        // Listen for system theme changes
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            // Only auto-switch if user hasn't manually set a preference
+            if (!localStorage.getItem('cognizant-theme')) {
+                const theme = e.matches ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', theme);
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html> 

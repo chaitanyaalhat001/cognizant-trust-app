@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Spending Transparency - CognizantTrust{% endblock %}
+
+{% block content %}
+<div class="hero-gradient text-center py-5 mb-5">
+    <div class="container">
+        <h1 class="display-4 fw-bold mb-3">Spending Transparency</h1>
+        <p class="lead">See exactly how your donations create positive impact</p>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Summary Cards -->
+    <div class="row mb-5">
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-success mb-2">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <h5 class="card-title">Total Donations</h5>
+                    <h3 class="text-success">{{ total_donations|inr_format }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-primary mb-2">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h5 class="card-title">Total Utilized</h5>
+                    <h3 class="text-primary">{{ total_spending|inr_format }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-info mb-2">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <h5 class="card-title">Available Funds</h5>
+                    <h3 class="text-info">{{ available_funds|inr_format }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-3 col-md-6 mb-4">
+            <div class="card h-100 text-center border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="display-6 text-warning mb-2">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <h5 class="card-title">Utilization Rate</h5>
+                    <h3 class="text-warning">{{ transparency_percentage|floatformat:1 }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Spending by Category -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-cognizant-gradient text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Spending by Category</h5>
+                </div>
+                <div class="card-body">
+                    {% if spending_by_category %}
+                        {% for category, amount in spending_by_category.items %}
+                            <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-secondary rounded">
+                                <div>
+                                    <h6 class="mb-1">{{ category }}</h6>
+                                    <small class="text-muted">Blockchain Verified</small>
+                                </div>
+                                <div class="text-end">
+                                    <h5 class="mb-0 text-success">{{ amount|inr_format }}</h5>
+                                    {% if total_spending > 0 %}
+                                        <small class="text-muted">{{ amount|div:total_spending|mul:100|floatformat:1 }}%</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No spending records yet</h6>
+                            <p class="text-muted">Transparency data will appear as funds are utilized</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Spending Records -->
+        <div class="col-lg-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Recent Activities</h5>
+                    <span class="badge bg-primary">Blockchain Verified</span>
+                </div>
+                <div class="card-body">
+                    {% if spending_records %}
+                        <div class="spending-list" style="max-height: 400px; overflow-y: auto;">
+                            {% for spending in spending_records %}
+                                <div class="spending-item border-bottom pb-3 mb-3">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="flex-grow-1">
+                                            <h6 class="mb-1">{{ spending.title }}</h6>
+                                            <p class="text-muted small mb-1">{{ spending.description|truncatechars:80 }}</p>
+                                            <div class="d-flex align-items-center text-muted small">
+                                                <i class="fas fa-map-marker-alt me-1"></i>{{ spending.location }}
+                                                <span class="mx-2">•</span>
+                                                <i class="fas fa-calendar me-1"></i>{{ spending.spent_date|date:"M d, Y" }}
+                                            </div>
+                                            <div class="mt-1">
+                                                <span class="badge bg-{{ spending.get_category_display|lower }} bg-opacity-10 text-primary">
+                                                    {{ spending.get_category_display }}
+                                                </span>
+                                                {% if spending.blockchain_tx_hash %}
+                                                    <a href="https://sepolia.etherscan.io/tx/{{ spending.blockchain_tx_hash }}" 
+                                                       target="_blank" class="badge bg-success text-decoration-none ms-1">
+                                                        <i class="fas fa-external-link-alt me-1"></i>Verify
+                                                    </a>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="text-end ms-3">
+                                            <h5 class="mb-0 text-success">{{ spending.amount|inr_format }}</h5>
+                                            <small class="text-muted">{{ spending.beneficiaries|truncatechars:20 }}</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="text-center mt-3">
+                            <a href="{% url 'donations:verified_spending' %}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View All Records
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">No spending records yet</h6>
+                            <p class="text-muted">Transparency records will appear here as funds are utilized for various causes</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blockchain Verification Info -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <i class="fas fa-shield-alt fa-2x text-primary"></i>
+                    </div>
+                    <div class="col-md-11">
+                        <h6 class="alert-heading mb-2">100% Blockchain Verified Transparency</h6>
+                        <p class="mb-0">
+                            All spending records shown here are permanently recorded on the Ethereum blockchain. 
+                            Click the "Verify" links to independently confirm each transaction on Etherscan. 
+                            This ensures complete transparency and accountability in how your donations are utilized.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom styles for transparency page */
+.spending-item:last-child {
+    border-bottom: none !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.spending-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.spending-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.spending-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.spending-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+</style>
+{% endblock %} 

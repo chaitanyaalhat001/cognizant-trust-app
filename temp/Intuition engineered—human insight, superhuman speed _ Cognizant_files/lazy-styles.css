@@ -1,0 +1,377 @@
+/* stylelint-disable selector-no-vendor-prefix */
+/* stylelint-disable property-no-vendor-prefix */
+/* stylelint-disable selector-class-pattern */
+/* stylelint-disable no-descending-specificity */
+/* stylelint-disable font-family-no-missing-generic-family-keyword */
+
+/* add global styles that can be loaded post LCP here */
+
+/* Lazy styles */
+@import url('./box-model.css');
+
+/* -- google search -- */
+.header-wrapper .search-wrapper{
+  position: fixed;
+  width: 100%;
+  top: 0;
+  height: 100vh;
+  background: var(--white);
+  z-index: 9999;
+  outline: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  margin-top: 2rem;
+  display: none;
+}
+
+.header-wrapper .search-wrapper p{
+  width: 75%;
+  margin: 0 auto;
+  padding: 0.25rem 2rem;
+}
+
+.header-wrapper .close-button{
+  background-color: transparent;
+  border-radius: .5rem;
+  position: absolute;
+  right: 25px;
+  top: 5px;
+  width: auto;
+  font-family: Gellix ,'helvetica neue', helvetica, ubuntu, roboto, noto, sans-serif !important;
+  font-weight: 400;
+  border: none;
+  color: var(--gray-medium);
+  cursor: pointer!important;
+  font-size: 2rem;
+  padding: 0;
+}
+
+.header-wrapper .close-button:hover{
+  color: var(--accent2-dark);
+  background-color: transparent;
+}
+
+.header-wrapper .search-wrapper.fade > *{
+  -webkit-transform: translateY(-50px);
+  transform: translateY(-50px);
+  -webkit-transition: -webkit-transform .3s ease-out;
+  transition: -webkit-transform .3s ease-out;
+  transition: transform .3s ease-out;
+  transition: transform .3s ease-out,-webkit-transform .3s ease-out
+}
+
+.header-wrapper .search-wrapper.fade:not(.show){
+  opacity: 0;
+}
+
+.header-wrapper .search-wrapper.show > *{
+  -webkit-transform: none;
+  transform: none;
+  transition: transform .5s ease-in;
+}
+
+.header-wrapper .fade {
+  -webkit-transition: opacity .15s linear;
+  transition: opacity .15s linear
+}
+
+/* back to top */
+.backtotop-scroll {
+  background-color: rgba(0 0 72 / 85%);
+  background-position: 100%;
+  border-radius: .5em;
+  bottom: .5rem;
+  color: var(--white);
+  cursor: pointer;
+  display: inline;
+  font-size: 16px;
+  position: fixed;
+  right: .5rem;
+  -webkit-transform: translateY(200%);
+  transform: translateY(200%);
+  -webkit-transition: all .2s ease;
+  transition: all .2s ease;
+  z-index: 10;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 .5rem 1rem 0;
+  padding: 0 0 0 0.75rem;
+  border: 0;
+  font-family: Gellix !important;
+}
+
+.backtotop-scroll::after {
+  font-family: Cognizant-Icons !important;
+  content: "\e909";
+  font-weight: 600;
+  margin: 0 0 0 .5rem;
+  padding: .5rem;
+  background: var(--primary);
+  border-radius: .5em;
+  color: var(--white);
+  display: inline-block;
+}
+
+.backtotop-scroll::before {
+  content: "";
+}
+
+.backtotop-scroll:hover,
+.backtotop-scroll:focus {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.backtotop-show {
+  -webkit-transform: translateY(0);
+  transform: translateY(0);
+}
+
+.backtotop span {
+  margin-right: 3.5px;
+}
+
+@media (max-width: 1023px) {
+  .backtotop-scroll {
+    display: none;
+  }
+}
+
+/* skip link */
+.skiptomaincontent-link {
+  position: absolute;
+  left: -999px;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  z-index: -999;
+}
+
+.skiptomaincontent-link:focus, .skiptomaincontent-link:active {
+  left: 20px;
+  top: 20px;
+  width: auto;
+  height: auto;
+  color: blue;
+  background: white;
+  border: 1px solid blue;
+  overflow: auto;
+  padding: 10px;
+  margin: 5px;
+  z-index: 999;
+}
+
+/* Autocomplete style starts */
+.header .autocomplete-wrapper .dropdown-menu .dropdown-item {
+  white-space: normal;
+  max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem 0.5rem 1rem;
+}
+
+.header .autocomplete-wrapper .dropdown-menu .dropdown-item:hover,
+.header .autocomplete-wrapper .dropdown-menu .dropdown-item:focus,
+.header .autocomplete-wrapper .dropdown-menu .dropdown-item:active {
+  background-color: var(--tint-accent2-light);
+}
+
+.header .search-bar {
+  z-index: 15;
+}
+
+.header .search-bar .autocomplete-wrapper .dropdown-menu {
+  top: 0.25rem;
+  border-radius: 0.5rem;
+}
+
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:first-child {
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:last-child {
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:only-child {
+  border-radius: 0.5rem;
+}
+
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:hover,
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:focus,
+.header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:active {
+  color: var(--primary) !important;
+}
+
+@media (max-width: 1023px) {
+  .header .search-bar .autocomplete-wrapper .dropdown-menu {
+    border-radius: 0 0 0.5rem 0.5rem;
+    border-left: 0;
+    border-right: 0;
+  }
+
+  .header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:first-child {
+    border-radius: 0;
+  }
+
+  .header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:only-child {
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+
+  /* Only display 5 autosuggestions for small and medium resolutions */
+  .header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:nth-child(n+6) {
+    display: none;
+  }
+
+  /* In devices 5th suggestion would be the last if there are >=5 suggestions */
+  .header .search-bar .autocomplete-wrapper .dropdown-menu .dropdown-item:nth-child(5) {
+    border-radius: 0 0 0.5rem 0.5rem;
+  }
+}
+
+/* Autocomplete style ends */
+
+/* ------ Google Autocomplete starts (Old implementation) ------ */
+
+/* -- google search -- */
+
+.header-wrapper .gsc-control-searchbox-only table, .header-wrapper .gsc-control-searchbox-only td, .header-wrapper .gsc-control-searchbox-only tr {
+  border: 0;
+  border-radius: 0;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.header-wrapper .gsc-control-searchbox-only td.gsc-input {
+  padding-right: 0 !important;
+}
+
+.header-wrapper .gsc-search-button button {
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  border-left: 0;
+  border-radius: 0 .5rem .5rem 0;
+  cursor: pointer;
+  display: flex;
+  font-size: 20px;
+  height: 72px;
+  margin-left: 0;
+  padding: 0 1rem;
+  margin-bottom: 0;
+}
+
+.header-wrapper .gsc-search-button button:focus {
+  background: var(--gray-lightest);
+  border-color: #97bce2;
+  -webkit-box-shadow: 0 0 0 .125rem var(--accent2-dark);
+  box-shadow: 0 0 0 .125rem var(--accent2-dark);
+  color: var(--primary);
+  outline: 0;
+} 
+
+.header-wrapper .gsc-control-searchbox-only td.gsc-input:focus-within +.gsc-search-button button {
+  background: var(--gray-lightest);
+  border-color: #97bce2;
+  -webkit-box-shadow: 0 0 0 .125rem var(--accent2-dark);
+  box-shadow: 0 0 0 .125rem var(--accent2-dark);
+}
+
+.header-wrapper .gsc-input {
+  margin-bottom: 0;
+}
+
+.header-wrapper .gsst_a {
+  display: none;
+}
+
+.header-wrapper .gsc-input-box input:focus {
+  background: var(--gray-lightest);
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  color: var(--primary);
+  outline: 0;
+}
+
+.header-wrapper .gsc-search-button button, .header-wrapper .gsc-search-button button:focus, .header-wrapper .gsc-search-button button:hover {
+  background: #f5f5f2;
+  border-color: #97999b
+} 
+
+.header-wrapper .gsc-search-button button svg {
+  fill: var(--primary);
+  height: 26px;
+  width: 26px;
+}
+
+.gssb_c {
+  border-radius: 0;
+  margin-left: -.5rem;
+  margin-top: 6.5em;
+  z-index: 9999 !important;
+}
+
+.gssb_c tbody {
+  background: transparent;
+}
+
+.gssb_c table, .gssb_c tbody, .gssb_c td, .gssb_c tr {
+  border-radius: 0!important;
+  font-family: var(--bs-font-sans-serif);
+}
+
+.gssb_c tr:nth-child(2n) {
+  background: transparent;
+}
+
+.gssb_c td {
+  border: 1px solid transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  cursor: pointer;
+  line-height: 26px;
+  padding: 4px 1rem 4px 0;
+}
+
+.gssb_c .gsc-completion-container {
+  border: 0;
+  -webkit-box-shadow: none!important;
+  box-shadow: none!important;
+  font-size: 20px;
+}
+
+.gssb_c .gsc-completion-container .gsc-completion-selected>td.gssb_e:hover {
+  background: transparent;
+  border: 0;
+}
+<<<<<<< HEAD
+=======
+
+>>>>>>> origin/main
+#mobile-suggestion-list .gsc-completion-container > tbody > tr > td:hover,
+#mobile-suggestion-list .gsc-completion-container > tbody > tr > td:focus,
+#mobile-suggestion-list .gsc-completion-container > tbody > tr > td:active {
+  background-color: var(--tint-accent2-light);
+}
+
+#mobile-suggestion-list .gsc-completion-container > tbody > tr:nth-child(n+6) {
+  display: none;
+}
+
+#mobile-suggestion-list .gsc-completion-container > tbody > tr:nth-child(5) > td,
+#mobile-suggestion-list .gsc-completion-container > tbody > tr:only-child > td {
+  border-radius: 0 0 0.5rem 0.5rem !important;
+}
+
+.mobile-search-bar .gsc-search-button .search {
+  padding: 0 0.75rem !important;
+}
+
+.mobile-search-bar .gsc-clear-button a {
+  margin: 0 !important;
+}
+
+/* ------ Google Autocomplete ends (Old implementation) ------ */

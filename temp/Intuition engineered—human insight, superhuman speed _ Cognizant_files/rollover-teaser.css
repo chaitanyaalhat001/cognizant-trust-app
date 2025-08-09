@@ -1,0 +1,153 @@
+.rollover-teaser-container {
+  padding: 3rem 0;
+}
+
+.rollover-teaser {
+  margin: 0 auto;
+  max-width: 75pc;
+  display: grid;
+  grid-gap: 20px;
+  padding: 0 0.5rem;
+}
+
+.text-container.rollover-teaser-container .rollover-teaser {
+  padding: 0;
+}
+
+.rollover {
+  min-height: 325px;
+}
+
+.rollover-teaser img {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.rollover-teaser.top-right img{
+  object-position: top right;
+}
+
+.hover-hide-show {
+  overflow: hidden;
+  position: relative;
+  z-index: 3;
+}
+
+.rollover .cmp-teaser {
+  display: flex;
+  padding: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.rollover .cmp-teaser-content {
+  display: inline-flex;
+  flex-wrap: wrap !important;
+  width: 100%;
+  position: absolute;
+  bottom: 0 !important;
+  align-content: flex-start !important;
+  padding: 1rem;
+  z-index: 2;
+  left: 0;
+}
+
+.rollover .cmp-teaser-content.hide-on-hover {
+  align-content: flex-start !important;
+}
+
+.rollover .cmp-teaser-content p {
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  font-size: .75rem;
+  border-bottom: 1px solid #fff;
+}
+
+.rollover .cmp-teaser-content h5 + p {
+  border-bottom: 0;
+  font-size: 20px;
+}
+
+.rollover .cmp-teaser-content.show-on-hover {
+  align-content: center!important;
+}
+
+/* homepage iphone portrait issue fix */
+.rollover .cmp-teaser-content.show-on-hover p {
+  padding-bottom: 0.5rem !important;
+}
+
+.rollover .cmp-teaser-content h5 a::after {
+  content: "";
+  font-family: Cognizant-Icons; /* stylelint-disable-line */
+  margin-left: 0.5rem;
+}
+
+.rollover .cmp-teaser-content h5 {
+  flex: 0 0 100%;
+}
+
+.hover-hide-show .hide-on-hover {
+  transform: translateY(0);
+  transition: all .35s cubic-bezier(.645,.045,.355,1);
+}
+
+.hover-hide-show .show-on-hover {
+  opacity: 0;
+}
+
+.hover-hide-show .show-on-hover,.hover-hide-show:hover .hide-on-hover {
+  transform: translateY(100%);
+}
+
+.hover-hide-show .show-on-hover,.hover-hide-show:hover .hide-on-hover,.hover-hide-show:hover .show-on-hover {
+  transition: all .35s cubic-bezier(.645,.045,.355,1);
+}
+
+.hover-hide-show:hover .show-on-hover {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.hover-hide-show:focus-within .hide-on-hover {
+  transform: translateY(100%);
+  transition: none;
+}
+
+.hover-hide-show:focus-within .show-on-hover {
+  opacity: 1;
+  transform: translateY(0);
+  transition: none;
+}
+
+.rollover .cmp-teaser .cmp-teaser-image {
+  height: 100%;
+  inset: 0;
+  object-fit: cover;
+  position: absolute;
+  width: 100%;
+}
+
+.rollover-teaser-wrapper {
+  padding-top: 1rem!important;
+}
+
+/* Two rollover section in same comtainer with Title alignment fix */
+.rollover-teaser-container .rollover-teaser-wrapper + .title-wrapper h5 {
+  padding-top: 1rem;
+}
+
+/* solid variations border */
+.rollover-teaser.solid .rollover{
+<<<<<<< HEAD
+  border: 1px solid #d0d0ce;
+}
+=======
+  border: 1px solid var(--gray-light);
+}
+
+.background-primary .rollover-teaser.solid .rollover{
+  border: none;
+}
+>>>>>>> origin/main

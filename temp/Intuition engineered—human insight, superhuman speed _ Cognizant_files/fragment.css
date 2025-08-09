@@ -1,0 +1,13 @@
+/* no-empty-source */
+.fragment.modal-fragment {
+  display: none;
+}
+
+.fragment.modal-fragment.modal-fragment-sticky {
+  display: block;
+}
+
+.section.fragment-container:has(.modal-fragment) {
+  padding: 0 !important;
+}
+ 

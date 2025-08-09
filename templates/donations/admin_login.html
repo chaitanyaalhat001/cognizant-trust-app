@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Login - CognizantTrust{% endblock %}
+
+{% block content %}
+<!-- Login Section -->
+<section class="py-5 bg-cognizant-light" style="min-height: 80vh;">
+    <div class="container">
+        <div class="row justify-content-center align-items-center" style="min-height: 70vh;">
+            <div class="col-lg-5 col-md-7">
+                <div class="card border-0 shadow-lg slide-up">
+                    <div class="card-header border-0 text-center py-4">
+                        <div class="d-flex justify-content-center align-items-center mb-3">
+                                                    <div class="cognizant-logo-simple me-3"></div>
+                            <h3 class="mb-0 text-cognizant-navy">CognizantTrust</h3>
+                        </div>
+                        <h4 class="mb-2 text-cognizant-navy">
+                            <i class="fas fa-user-shield me-2"></i>
+                            Admin Login
+                        </h4>
+                        <p class="text-gray-600 mb-0">Secure access to the admin dashboard</p>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <form method="post" id="loginForm">
+                            {% csrf_token %}
+                            <input type="hidden" name="login" value="1">
+                            
+                            <!-- Username Field -->
+                            <div class="mb-4">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user me-1 text-cognizant-blue"></i>
+                                    Username
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gray-50 border-end-0">
+                                        <i class="fas fa-user text-gray-500"></i>
+                                    </span>
+                                    <input type="text" 
+                                           class="form-control border-start-0" 
+                                           id="username" 
+                                           name="username" 
+                                           placeholder="Enter your username"
+                                           required 
+                                           autofocus>
+                                </div>
+                            </div>
+                            
+                            <!-- Password Field -->
+                            <div class="mb-4">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock me-1 text-cognizant-blue"></i>
+                                    Password
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-gray-50 border-end-0">
+                                        <i class="fas fa-lock text-gray-500"></i>
+                                    </span>
+                                    <input type="password" 
+                                           class="form-control border-start-0" 
+                                           id="password" 
+                                           name="password" 
+                                           placeholder="Enter your password"
+                                           required>
+                                    <button class="btn btn-outline-secondary" 
+                                            type="button" 
+                                            id="togglePassword"
+                                            data-bs-toggle="tooltip" 
+                                            title="Show/Hide Password">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Login Button -->
+                            <div class="d-grid mb-4">
+                                <button type="submit" 
+                                        class="btn btn-cognizant-primary btn-lg" 
+                                        id="loginButton">
+                                    <i class="fas fa-sign-in-alt me-2"></i>
+                                    Sign In
+                                </button>
+                            </div>
+                            
+                        </form>
+                        
+                        <!-- Back to Home -->
+                        <div class="text-center">
+                            <a href="{% url 'donations:home' %}" class="text-decoration-none">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Back to Home
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="h3 fw-bold text-cognizant-blue mb-3">Admin Dashboard Features</h2>
+            <p class="text-gray-700">Powerful tools for managing donations and blockchain recording</p>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="stats-card text-center h-100">
+                    <div class="mb-3">
+                        <i class="fas fa-list-alt fa-2x text-cognizant-blue"></i>
+                    </div>
+                    <h6 class="fw-bold text-cognizant-blue mb-2">Donation Management</h6>
+                    <p class="text-gray-600 small mb-0">
+                        View and manage all donation transactions with detailed information and status tracking.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center h-100">
+                    <div class="mb-3">
+                        <i class="fas fa-cube fa-2x text-cognizant-green"></i>
+                    </div>
+                    <h6 class="fw-bold text-cognizant-blue mb-2">Blockchain Recording</h6>
+                    <p class="text-gray-600 small mb-0">
+                        Record transactions on Ethereum blockchain via MetaMask for permanent transparency.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center h-100">
+                    <div class="mb-3">
+                        <i class="fas fa-chart-bar fa-2x text-cognizant-orange"></i>
+                    </div>
+                    <h6 class="fw-bold text-cognizant-blue mb-2">Real-time Analytics</h6>
+                    <p class="text-gray-600 small mb-0">
+                        Monitor donation statistics and blockchain recording status in real-time.
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card text-center h-100">
+                    <div class="mb-3">
+                        <i class="fas fa-eye fa-2x text-cognizant-blue"></i>
+                    </div>
+                    <h6 class="fw-bold text-cognizant-blue mb-2">Public Transparency</h6>
+                    <p class="text-gray-600 small mb-0">
+                        All recorded transactions are publicly verifiable and completely transparent.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Security Notice -->
+<section class="py-4 bg-cognizant-light">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-shield-check fa-lg text-cognizant-green"></i>
+                            </div>
+                            <div>
+                                <h5 class="text-cognizant-blue mb-2">
+                                    <i class="fas fa-lock me-2"></i>
+                                    Enterprise Security
+                                </h5>
+                                <p class="text-gray-700 mb-3">
+                                    Your admin session is protected with enterprise-grade security measures including secure authentication, session management, and blockchain integration via MetaMask.
+                                </p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled small">
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-cognizant-green me-2"></i>
+                                                Secure Authentication
+                                            </li>
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-cognizant-green me-2"></i>
+                                                Session Protection
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <ul class="list-unstyled small">
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-cognizant-green me-2"></i>
+                                                MetaMask Integration
+                                            </li>
+                                            <li class="mb-1">
+                                                <i class="fas fa-check text-cognizant-green me-2"></i>
+                                                Audit Trail Logging
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Toggle password visibility
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordField = document.getElementById('password');
+    
+    togglePassword.addEventListener('click', function() {
+        const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordField.setAttribute('type', type);
+        
+        const icon = this.querySelector('i');
+        if (type === 'text') {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            this.setAttribute('title', 'Hide Password');
+        } else {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            this.setAttribute('title', 'Show Password');
+        }
+        
+        // Update tooltip
+        const tooltip = bootstrap.Tooltip.getInstance(this);
+        if (tooltip) {
+            tooltip.dispose();
+            new bootstrap.Tooltip(this);
+        }
+    });
+
+    // Form submission with loading state
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const submitButton = document.getElementById('loginButton');
+        const originalText = submitButton.innerHTML;
+        
+        // Show loading state
+        submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Signing In...';
+        submitButton.disabled = true;
+        
+        // Allow form to submit normally
+        // The loading state will persist until page reloads or redirects
+    });
+
+    // Add focus effects
+    const inputs = document.querySelectorAll('input[type="text"], input[type="password"]');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('border-cognizant');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('border-cognizant');
+        });
+    });
+
+    // Add animation classes on scroll
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.stats-card').forEach(card => {
+        observer.observe(card);
+    });
+});
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showAlert('success', 'Copied to clipboard!');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showAlert('danger', 'Failed to copy to clipboard');
+    });
+}
+
+// Notification queue system
+window.notificationQueue = window.notificationQueue || [];
+window.activeNotifications = window.activeNotifications || [];
+
+function showAlert(type, message) {
+    // Check if there's already an active notification
+    if (window.activeNotifications.length > 0) {
+        // Queue this notification
+        window.notificationQueue.push({ type, message });
+        return;
+    }
+
+    displayNotification(type, message);
+}
+
+function displayNotification(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+    alertDiv.style.cssText = `
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 9999;
+        min-width: 400px;
+        max-width: 600px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 500;
+        animation: slideIn 0.3s ease-out;
+    `;
+    alertDiv.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+
+    // Add CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+        }
+        @keyframes slideOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.9);
+            }
+        }
+    `;
+    if (!document.querySelector('#notification-styles')) {
+        style.id = 'notification-styles';
+        document.head.appendChild(style);
+    }
+    
+    // Add to active notifications
+    window.activeNotifications.push({ alertDiv });
+    
+    document.body.appendChild(alertDiv);
+    
+    // Remove function
+    const removeAlert = () => {
+        alertDiv.style.animation = 'slideOut 0.3s ease-in';
+        setTimeout(() => {
+            if (alertDiv.parentNode) alertDiv.remove();
+            
+            // Remove from active notifications
+            window.activeNotifications = window.activeNotifications.filter(n => n.alertDiv !== alertDiv);
+            
+            // Show next notification in queue
+            if (window.notificationQueue.length > 0) {
+                const next = window.notificationQueue.shift();
+                setTimeout(() => displayNotification(next.type, next.message), 100);
+            }
+        }, 300);
+    };
+    
+    // Click close button
+    alertDiv.querySelector('.btn-close').addEventListener('click', removeAlert);
+    
+    // Auto remove after 5 seconds
+    setTimeout(removeAlert, 5000);
+}
+</script>
+{% endblock %} 

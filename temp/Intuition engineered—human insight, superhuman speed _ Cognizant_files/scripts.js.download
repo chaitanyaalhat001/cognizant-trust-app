@@ -1,0 +1,727 @@
+import {
+  sampleRUM,
+  loadHeader,
+  loadFooter,
+  decorateButtons,
+  decorateIcons,
+  decorateSections,
+  decorateBlock,
+  decorateBlocks,
+  decorateTemplateAndTheme,
+  waitForLCP,
+  loadBlocks,
+  loadBlock,
+  loadCSS,
+  readBlockConfig,
+  buildBlock,
+  getMetadata,
+  createOptimizedPicture,
+} from './aem.js';
+import './purify.min.js';
+// eslint-disable-next-line import/no-cycle
+import {
+  modalButtonAttributes,
+  videoButton,
+  headingLinkModalAttributes,
+} from './utils/video-util.js';
+
+const LCP_BLOCKS = ['hero']; // add your LCP blocks to the list
+
+export function newId() {
+  return Math.round(Math.random() * 1e10);
+}
+
+export function addLinkToDataLayer(link, location, name, type, heading, description, videoSrc = '') {
+  let parent = link.closest('[data-data-layer-id]');
+  // Accordion link, TabTeaser & Related Thinking parent id matches
+  const isAccordion = link.closest('.accordion-item');
+  const isTabTeaser = link.closest('.horizontal-tabs');
+  if (isAccordion && isAccordion.closest('.accordion-wrapper')) {
+    // check if teaser inside accordion
+    if (link.closest('.teaser-content') && link.closest('h5')) {
+      parent = link.closest('.teaser-content');
+      link.dataset.dataLayerId = `${link.closest('.teaser-content').getAttribute('data-data-layer-id')}-${name}-${newId()}`;
+    } else if (link.closest('.teaser-content') && link.closest('.button-container')) {
+      parent = link.closest('.teaser-content');
+      link.dataset.dataLayerId = `${link.closest('.teaser-content').getAttribute('data-data-layer-id')}-${name}-${newId()}`;
+    } else {
+      parent = isAccordion.querySelector('button[data-data-layer-id]');
+      link.dataset.dataLayerId = `${name}-${newId()}`;
+    }
+  } else if (isTabTeaser && link.closest('.button-container')) {
+    parent = link.closest('.card-teaser');
+    const tabId = parent?.getAttribute('data-data-layer-id');
+    link.dataset.dataLayerId = `${tabId}-${name}-${newId()}`;
+  } else if (name === 'relatedthinking') {
+    link.dataset.dataLayerId = parent && !parent.dataset.dataLayerId.startsWith('page-')
+      ? `${parent.dataset.dataLayerId}-${name}-${newId()}`
+      : `${link.id}-${newId()}`;
+  } else {
+    link.dataset.dataLayerId = parent && !parent.dataset.dataLayerId.startsWith('page-')
+      ? `${parent.dataset.dataLayerId}-${name}-${newId()}`
+      : `${name}-${newId()}`;
+  }
+
+  const componentData = { 'xdm:location': location, 'xdm:linkURL': videoSrc !== '' ? videoSrc : link.href };
+  // Set Title as per condition
+  if (link.title) {
+    if (name === 'title') {
+      componentData['dc:title'] = 'Teaser-Title';
+    } else {
+      componentData['dc:title'] = link.title;
+    }
+    // CTAs to not have xdm:text
+    if (name !== 'cta') {
+      // Take aria-label as xdm:text for podcast cta
+      if (link.parentElement.classList.contains('podcast-button-wrapper')) {
+        componentData['xdm:text'] = link.getAttribute('aria-label');
+      } else {
+        componentData['xdm:text'] = link.innerText;
+      }
+    }
+  } else if (name === 'relatedthinking' || name === 'imageBtn') {
+    if (heading) componentData['dc:title'] = heading;
+    componentData['xdm:text'] = link.innerText;
+  } else {
+    componentData['dc:title'] = link.innerText.length !== 0 ? link.innerText : `${link.ariaLabel}`;
+  }
+  if (heading === 'accordion-filter' || heading === 'vertical-tabs' || heading === 'bluebarBtn') {
+    delete componentData['xdm:text'];
+  }
+  // Analytics fix for default content wrapper -> anchor
+  if (name === 'button') {
+    delete componentData['xdm:text'];
+  } else if (name === 'dotcom-bluebar') {
+    componentData['dc:title'] = heading;
+    delete componentData['xdm:text'];
+  }
+  // Set Heading text For Header V3 Featured card
+  if (name === 'feature-teaser') {
+    if (link.classList.contains('link-like-button')) {
+      const cardWrapper = link.parentNode;
+      const headingText = cardWrapper.querySelector('h1,h2,h3,h4,h5,h6');
+      if (headingText) componentData['dc:title'] = headingText.innerText;
+      const parentTitle = headingText.querySelector('a[data-data-layer-id]');
+      componentData.parentId = parentTitle.dataset.dataLayerId;
+    } else {
+      componentData.parentId = parent.dataset.dataLayerId;
+    }
+    // Analytics fix for header card link
+    componentData['xdm:text'] = link.innerText;
+  }
+  // Set attribs for Video
+  if (videoSrc !== '') {
+    componentData.parentId = document.querySelector('body').getAttribute('data-data-layer-id');
+    componentData['dc:description'] = '';
+  }
+  if (heading && name !== 'feature-teaser' && heading.textContent !== undefined) {
+    componentData.parentId = document.querySelector('body').getAttribute('data-data-layer-id');
+    componentData['dc:title'] = heading.textContent;
+    componentData['dc:description'] = description?.textContent;
+  }
+
+  if (type !== null) componentData['xdm:trackingType'] = type || name;
+  // Set page id for parent
+  if (parent && name !== 'feature-teaser') componentData.parentId = parent.dataset.dataLayerId;
+  if (link.closest('.bar-info-stack') || link.closest('.horizontal-tabs .card-teaser h5 a')) {
+    componentData.parentId = document.querySelector('body').getAttribute('data-data-layer-id');
+  }
+  // for img modal overlay in accordion starts
+  if (name === 'imageBtn' && heading === '') {
+    componentData['dc:title'] = link.innerText;
+    componentData.parentId = link.closest('.accordion-collapse').getAttribute('id');
+    delete componentData['xdm:text'];
+    delete componentData['xdm:trackingType'];
+  }
+  // for img modal overlay in accordion ends
+  window.adobeDataLayer.push({ component: { [link.dataset.dataLayerId]: componentData } });
+  return link.dataset.dataLayerId;
+}
+
+export function addVideoButtonToDataLayer(heading, button, location, name, type, videoSrc, para) {
+  const parent = button.closest('[data-data-layer-id]');
+  button.dataset.dataLayerId = parent && !parent.dataset.dataLayerId.startsWith('page-')
+    ? `${parent.dataset.dataLayerId}-${name}-${newId()}`
+    : `${name}-${newId()}`;
+  let componentData;
+  if (para !== '') {
+    componentData = {
+      'dc:description': para?.textContent,
+      'dc:title': heading.textContent,
+      'xdm:linkURL': videoSrc,
+      'xdm:location': location,
+      'xdm:text': button.querySelector('.cmp-button__text')?.innerText || 'Play the video',
+      'xdm:trackingType': type,
+    };
+  } else {
+    componentData = {
+      'dc:description': '',
+      'dc:title': heading.textContent,
+      'xdm:linkURL': videoSrc,
+      'xdm:location': location,
+      'xdm:text': button.querySelector('.cmp-button__text')?.innerText || 'Play the video',
+      'xdm:trackingType': type,
+      parentId: parent.dataset.dataLayerId,
+    };
+  }
+  window.adobeDataLayer.push({ component: { [button.dataset.dataLayerId]: componentData } });
+  return button.dataset.dataLayerId;
+}
+
+export function addTeaserToDataLayer(teaser, targetEl) {
+  // if a targetEl is given, the data-layer-id is written to it, but the data read from the given
+  // teaser.
+  // eslint-disable-next-line no-param-reassign
+  if (!targetEl) targetEl = teaser;
+  const parent = teaser.closest('[data-data-layer-id]');
+  targetEl.dataset.dataLayerId = `teaser-${newId()}`;
+  const componentData = { 'xdm:location': 'Body' };
+  const heading = teaser.querySelector('h1,h2,h3,h4,h5,h6');
+  if (heading) componentData['dc:title'] = heading.innerText;
+  if (parent) componentData.parentId = parent.dataset.dataLayerId;
+
+  window.adobeDataLayer.push({ component: { [targetEl.dataset.dataLayerId]: componentData } });
+  return targetEl.dataset.dataLayerId;
+}
+
+// Video url generator function
+export function videoURLGenerator(buttonHref) {
+  let btnVideoUrl;
+  if (buttonHref.includes('youtube')) {
+    btnVideoUrl = `${buttonHref}?enablejsapi=1&showinfo=0&modestbranding=1&wmode=transparent&controls=1&autohide=1&rel=0&autoplay=1&cc_load_policy=1`;
+  } else if ((buttonHref.includes('pdf'))) {
+    btnVideoUrl = `${buttonHref}`;
+  } else {
+    // For vimeo and DM video
+    btnVideoUrl = `${buttonHref}?enablejsapi=1&autoplay=0`;
+  }
+  return btnVideoUrl;
+}
+
+// Modal overlay html generator function
+export function modalOverlayHtmlGenerator(modalButtonTarget, modalFormBodyHtml, iframe = true) {
+  let modalBodyHtml;
+  if (iframe) {
+    modalBodyHtml = `<div class='iframe-wrapper'>
+    <iframe src='' width='100' height='100' allowfullscreen='' loading='lazy' allow='autoplay'></iframe>
+    </div>`;
+  } else {
+    modalBodyHtml = modalFormBodyHtml.outerHTML;
+  }
+  const modalHtml = `
+  <div class='modal-overlay' id=${modalButtonTarget}>
+    <div class='modal-dialog'>
+      <div class='modal-content'>
+        <div class='modal-body'>
+          ${modalBodyHtml}
+          <button class='modal-close cmp-icon' aria-label='Close'></button>
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+  return modalHtml;
+}
+const getClassNames = (container, iframe, form, image) => {
+  let dialogClass = 'modal-lg';
+  if (container) {
+    dialogClass = 'modal-xl';
+  } else if (iframe && form) {
+    dialogClass = 'border-0 modal-xl h-auto';
+  }
+  let contentClass = 'bg-primary-85';
+  if ((iframe && form) || container) {
+    contentClass = 'bg-white vh-100-sm';
+  }
+  let ratioClass = '';
+  if (!(container || form)) {
+    ratioClass = image ? 'text-center' : 'ratio ratio-16x9';
+  }
+  return { dialogClass, contentClass, ratioClass };
+};
+// Modal overlay html generator function
+export function bootstrapModalOverlayHtmlGenerator(
+  modalButtonTarget,
+  videoSrc,
+  heading,
+  iframeid,
+  iframe = true,
+  image = false,
+  form = false,
+  container = false,
+) {
+  let modalBodyHtml;
+  let stickyHeading;
+  let stickyDesc;
+  if (heading instanceof HTMLElement && heading.querySelector('.modal-header') !== null) {
+    stickyHeading = heading.querySelector('.modal-header');
+    stickyDesc = heading.querySelector('.modal-desc');
+    modalBodyHtml = `
+     <iframe data-src=${videoSrc} width='100' height='100' id="${form ? iframeid : ''}"class="${form ? 'vh-100-sm pt-3 iframe-resizer-pardot' : ''}" allowfullscreen='' loading='lazy'
+      aria-label= "${heading}"></iframe>
+   `;
+  } else if (iframe) {
+    modalBodyHtml = `
+     <iframe data-src=${videoURLGenerator(videoSrc)} width='100' height='100' id="${form ? iframeid : ''}"class="${form ? 'vh-100-sm pt-3 iframe-resizer-pardot' : ''}" allowfullscreen='' loading='lazy' allow='autoplay' 
+      aria-label= "${heading?.textContent}"></iframe>
+   `;
+  } else if (image) {
+    modalBodyHtml = `
+     <img src=${(videoSrc)} width='100' height='100' class='pt-3' alt= "${heading}" loading='lazy' 
+      />`;
+  } else {
+    const testdiv = document.createElement('div');
+    [...heading].forEach((el) => {
+      testdiv.append(el);
+      modalBodyHtml = testdiv.innerHTML;
+    });
+  }
+  const { dialogClass, contentClass, ratioClass } = getClassNames(container, iframe, form, image);
+  const modalBodyWrapper = stickyHeading ? `<div class='modal-body p-1'>
+                              ${stickyHeading ? stickyHeading.outerHTML : ''}
+                              <div class='modal-body ${stickyDesc ? '' : 'p-1'}'>
+                                ${stickyDesc ? stickyDesc.outerHTML : ''}
+                                <div class='${ratioClass}'>
+                                  ${modalBodyHtml}
+                                </div>
+                              </div>
+                            </div>` : `<div class='modal-body p-1'><div class='${ratioClass}'>
+                                  ${modalBodyHtml}
+                                </div>
+                              </div>`;
+  const modalHtml = `
+  <div
+  class="${iframe ? 'modal fade video-modal iframe-video' : 'modal fade'} ${form ? '' : ''}"
+  id=${modalButtonTarget.replace('#', '')}
+  tabindex="-1"
+  aria-labelledby=${modalButtonTarget.replace('#', '')}
+  aria-hidden="true"
+  data-bs-backdrop="false"
+>
+  <div class='modal-dialog ${dialogClass}'>
+    <div class='modal-content ${contentClass}'>
+      ${modalBodyWrapper}
+      <button
+        class="btn-close cmp-icon-pseudo close p-0"
+        type="button"
+        data-bs-dismiss="modal"
+        aria-label="Close"
+      ></button>
+    </div>
+  </div>
+  </div>
+  `;
+  return modalHtml;
+}
+
+export function insertModal(block, modalOverlayHtml) {
+  const isAemiTab = document.querySelector('.aemi-tabs');
+  if (isAemiTab) {
+    // If aemi-tab-header is present, then insert the modal outside in main tag
+    const main = document.querySelector('main');
+    const lastChildInMain = main.children[main.children.length - 1];
+    lastChildInMain.insertAdjacentHTML('afterend', modalOverlayHtml);
+  } else {
+    block.insertAdjacentHTML('afterend', modalOverlayHtml);
+  }
+}
+
+/**
+ * load fonts.css and set a session storage flag
+ */
+async function loadFonts() {
+  await loadCSS(`${window.hlx.codeBasePath}/styles/fonts.css`);
+  try {
+    if (!window.location.hostname.includes('localhost')) sessionStorage.setItem('fonts-loaded', 'true');
+  } catch (e) {
+    // do nothing
+  }
+}
+
+function buildInPageNav(main) {
+  const hero = main.querySelector('.hero');
+  if (hero) {
+    const lis = [...main.querySelectorAll(':scope > div')]
+      .map((section) => {
+        const sectionMeta = section.querySelector('.section-metadata');
+        if (sectionMeta) {
+          const metadata = readBlockConfig(sectionMeta);
+          if (metadata.label) {
+            return metadata.label;
+          }
+        }
+        return undefined;
+      })
+      .filter((label) => !!label)
+      .map((label) => {
+        const li = document.createElement('li');
+        li.textContent = label;
+        return li;
+      });
+    if (lis.length) {
+      const ul = document.createElement('ul');
+      ul.append(...lis);
+      const block = buildBlock('inpage-nav', ul);
+      hero.insertAdjacentElement('afterend', block);
+    }
+  }
+}
+
+function rearragneHero(main) {
+  const hero = main.querySelector(':scope > div:first-child > .hero');
+  if (hero) {
+    const section = hero.parentElement;
+    const newSection = document.createElement('div');
+    // if there is a blue bar, already add the container class
+    if (section.querySelector('.blue-bar')) newSection.classList.add('blue-bar-container');
+    if (section.querySelector('.inpage-nav')) newSection.classList.add('inpage-nav-container');
+    newSection.insertAdjacentElement('afterbegin', hero);
+    section.insertAdjacentElement('beforebegin', newSection);
+  }
+}
+
+function generateSectionBackgroundImages(main) {
+  [...main.querySelectorAll(':scope > div')].forEach((section) => {
+    const sectionMeta = section.querySelector('.section-metadata');
+    if (sectionMeta) {
+      const metadata = readBlockConfig(sectionMeta);
+      if (Object.hasOwn(metadata, 'background-image')) {
+        section.prepend(createOptimizedPicture(metadata['background-image'], '', false));
+      }
+    }
+  });
+}
+
+function autolinkModals(element) {
+  element.addEventListener('click', async (e) => {
+    const origin = e.target.closest('a');
+
+    if (origin && origin.href && origin.href.includes('/modals/')) {
+      e.preventDefault();
+      const { openModal } = await import(`${window.hlx.codeBasePath}/blocks/modal/modal.js`);
+      openModal(origin.href);
+    }
+  });
+}
+
+/**
+ * Builds all synthetic blocks in a container element.
+ * @param {Element} main The container element
+ */
+function buildAutoBlocks(main) {
+  try {
+    if (!document.querySelector('.aemi-header.aemi-inpage')) {
+      buildInPageNav(main);
+    }
+    rearragneHero(main);
+    generateSectionBackgroundImages(main);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Auto Blocking failed', error);
+  }
+}
+
+/**
+ * Adds mutation observer to detect teasers inserted by Target
+ * @param {Element} main The container element
+ */
+function observeTarget(main) {
+  const callback = (mutationList, observer) => {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const mutation of mutationList) {
+      if (mutation.type === 'childList') {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1 && node.classList.contains('teaser') && !node.closest('.accordion')) {
+            // eslint-disable-next-line no-console
+            console.log('Teaser DIV was added');
+            node.classList.add('target-block');
+            decorateBlock(node);
+            loadBlock(node);
+            observer.disconnect();
+          }
+        });
+      }
+    }
+  };
+
+  const observer = new MutationObserver(callback);
+  observer.observe(main, { attributes: false, childList: true, subtree: true });
+}
+
+/**
+ * Decorates the main element.
+ * @param {Element} main The main element
+ */
+// eslint-disable-next-line import/prefer-default-export
+export function decorateMain(main) {
+  // hopefully forward compatible button decoration
+  decorateButtons(main);
+  decorateIcons(main);
+  buildAutoBlocks(main);
+  decorateSections(main);
+  decorateBlocks(main);
+}
+
+/**
+ * Loads everything needed to get to LCP.
+ * @param {Element} doc The container element
+ */
+async function loadEager(doc) {
+  document.documentElement.lang = 'en';
+  decorateTemplateAndTheme();
+  const main = doc.querySelector('main');
+  if (main) {
+    decorateMain(main);
+    document.body.classList.add('appear');
+    await waitForLCP(LCP_BLOCKS);
+  }
+
+  try {
+    /* if desktop (proxy for fast connection) or fonts already loaded, load fonts.css */
+    if (window.innerWidth >= 900 || sessionStorage.getItem('fonts-loaded')) {
+      loadFonts();
+    }
+  } catch (e) {
+    // do nothing
+  }
+}
+
+/**
+ * Loads everything that doesn't need to be delayed.
+ * @param {Element} doc The container element
+ */
+async function loadLazy(doc) {
+  autolinkModals(doc);
+
+  const main = doc.querySelector('main');
+  await loadBlocks(main);
+  // once again to load remaining blocks decorated by fragment.js
+  await loadBlocks(main);
+  const { hash } = window.location;
+  const element = hash ? doc.getElementById(hash.substring(1)) : false;
+  if (hash && element) element.scrollIntoView();
+  loadHeader(doc.querySelector('header'));
+  loadFooter(doc.querySelector('footer'));
+  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
+  loadFonts();
+  observeTarget(main);
+
+  sampleRUM('lazy');
+  sampleRUM.observe(main.querySelectorAll('div[data-block-name]'));
+  sampleRUM.observe(main.querySelectorAll('picture > img'));
+}
+
+/**
+ * Loads everything that happens a lot later,
+ * without impacting the user experience.
+ */
+function loadDelayed() {
+  // eslint-disable-next-line import/no-cycle
+  window.setTimeout(() => import('./delayed.js'), 3000);
+  // load anything that can be postponed to the latest here
+}
+
+function loadColumnsWrapper() {
+  window.setTimeout(() => import('./utils/columns-utils.js'), 500);
+}
+
+function initDataLayer(doc) {
+  window.adobeDataLayer = window.adobeDataLayer || [];
+
+  const pageData = {
+    pageTitle: doc.querySelector('title').textContent,
+    'dc:title': getMetadata('og:title', doc),
+    cookie_enabled: navigator.cookieEnabled,
+  };
+  ['Vertical', 'Practice-Area', 'Practice', 'Activity-Type', 'industry', 'industry_type', 'pageCreatedDate', 'pagePublishDate']
+    .forEach((key) => { pageData[key] = getMetadata(key.toLocaleLowerCase(), doc) || 'Not Applicable'; });
+  ['countryPage', 'language', 'pageIdentifier']
+    .forEach((key) => { pageData[key] = getMetadata(key.toLocaleLowerCase(), doc); });
+
+  const [, country, language, ...rest] = window.location.pathname.split('/');
+  if (country && !pageData.countryPage) {
+    pageData.countryPage = country.toLocaleUpperCase();
+  }
+  if (language && !pageData.language) {
+    pageData.language = language.toLocaleUpperCase();
+  }
+  if (rest.length > 0) {
+    if (!pageData.pageIdentifier) {
+      pageData.pageIdentifier = rest[rest.length - 1];
+      if (pageData.pageIdentifier === 'home') pageData.pageIdentifier = 'homepage';
+    }
+    if (!pageData.siteSection) {
+      pageData.siteSection = { h1: rest[0] };
+    }
+  } else {
+    // eslint-disable-next-line no-lonely-if
+    if (!pageData.siteSection && language) {
+      pageData.siteSection = { h1: `${language}_header_footer` };
+    }
+  }
+  pageData.pageID = ['CTS', pageData.countryPage, pageData.language, pageData.pageIdentifier.toLocaleUpperCase()].join(':');
+  pageData.hostname = window.location.origin;
+
+  const randomId = newId();
+  const pageDataId = `page-${randomId}`;
+  doc.body.dataset.dataLayerId = pageDataId;
+
+  window.adobeDataLayer.push({
+    page: { [pageDataId]: pageData },
+    eventInfo: { path: `page.${pageDataId}` },
+    event: 'cmp:show',
+  });
+}
+
+async function loadPage() {
+  initDataLayer(document);
+  await loadEager(document);
+  await loadLazy(document);
+  loadColumnsWrapper();
+  loadDelayed();
+
+  // add click tracking for default content buttons
+  [...document.querySelectorAll('.default-content-wrapper a, .columns-wrapper a')]
+    .filter((a) => !a.dataset.dataLayerId)
+    .forEach((a) => addLinkToDataLayer(a, 'Body', 'button', null));
+}
+
+loadPage();
+
+// This function is called in delayed.js and in modal.js
+// For opening anchor tag in a new tab if it doesn't contains 'cognizant.com' in href
+// and add aria-label and remove title attribute
+export function linkAttributeUpdate(selectors) {
+  selectors
+    .forEach((a) => {
+      const href = a.getAttribute('href');
+      if (a.closest('header') && href?.includes('/careers')) a.target = '_blank'; // eslint-disable-line
+      if (href && !href.startsWith('/') && !href.startsWith('#') && !href.includes('javascript:void(0)') && !href.includes('www.cognizant.com') || href?.includes('pdf') && !a.classList.contains('video-heading') || href?.includes('image') || href?.includes('jpg') || href?.includes('png')) a.target = '_blank'; // eslint-disable-line
+      if (!a.classList.contains('video-heading') && !a.classList.contains('breadcrumb-link') && !a.classList.contains('news-heading') && !a.parentElement.classList.contains('podcast-button-wrapper') && !a.parentElement.classList.contains('container-clickable')) (a.textContent !== '') ? a.setAttribute('aria-label', a.textContent) : a.setAttribute('aria-label', 'icon'); // eslint-disable-line
+      if (!a.hasAttribute('data-bs-toggle') || a.classList.contains('video-heading') || a.getAttribute('data-bs-toggle') === 'modal') {
+        a.removeAttribute('title');
+      }
+      if (href?.includes('connectedassets') && !a.parentElement.className.includes('modal-img')) {
+        // Find the part from "/en_us" onwards
+        const shortenedLinkPart = href.split('/en_us')[1];
+        // Construct the new shortened link
+        const shortenedLink = `/en_us${shortenedLinkPart}`;
+        // Replace the href with the new shortened link
+        a.setAttribute('href', shortenedLink);
+      }
+    });
+}
+
+// equalize height
+export const equalizer = (el) => {
+  el.forEach((element) => element.removeAttribute('style'));
+  const contentHeight = [];
+  el.forEach((element) => contentHeight.push(element.getBoundingClientRect().height));
+  const maxHeight = Math.max(...contentHeight);
+  el.forEach((element) => {
+    element.style.height = `${maxHeight}px`;
+  });
+};
+// eslint-disable-line
+export function setAttr(el, attrObj) {
+  Object.entries(attrObj).forEach(([key, value]) => {
+    el.setAttribute(key, value);
+  });
+}
+
+// Remove Emojis
+export const removeEmojis = (value) => {
+  const emojiRegex = /[^\p{L}\p{N}\p{P}\p{Z}]/gu;
+  //   It removes all symbols except:
+  // \p{L} - all letters from any language
+  // \p{N} - numbers
+  // \p{P} - punctuation
+  // \p{Z} - whitespace separators
+  return value.replace(emojiRegex, '');
+};
+
+// Remove special characters
+export const removeSpecialCharacters = (value) => {
+  const specialCharRegex = /[=<>]/g;
+  return value.replace(specialCharRegex, '');
+};
+
+// Filter and getClass names
+export const getClassNamesStartingWithEither = (element, word1, word2) => {
+  if (element) {
+    const cl = element.className.split(' ');
+    return cl.filter((className) => className.startsWith(word1) || className.startsWith(word2));
+  }
+  return null;
+};
+
+export function buttonOverlayFragment(block, btnel) {
+  const randomValue = Math.floor(Math.random() * 1000);
+  let createButton;
+  if (block.classList.value.includes('video-icon')) {
+    createButton = videoButton(true, true, block, 'fs-6', 'cmp-button-icon-video', 'fw-bold');
+  } else {
+    createButton = videoButton(true, true, block, 'fs-6', 'cmp-button-icon-arrow', 'fw-bold');
+  }
+  modalButtonAttributes(createButton, randomValue, '', 'iframe-video');
+  if (block.classList.contains('horizontal-teaser')) {
+    headingLinkModalAttributes(block.querySelector('h5'), randomValue, randomValue, 'iframe-video');
+  }
+  const heading = block.querySelector('h1, h2, h3, h4, h5, h6');
+  const para = block.querySelector('p');
+  btnel.classList.add('button', 'cog-button');
+  btnel.append(createButton);
+  const videoSrc = block.querySelector('.button-container a').getAttribute('href');
+  if (block.classList?.contains('pdfbutton')) {
+    block.querySelector('.video-modal-button').classList.add('link-like-button', 'cmp-button', 'd-touch-none', 'd-inline-flex');
+    block?.querySelector('.button-container')?.nextElementSibling?.remove();
+    block?.querySelector('.button-container a')?.classList.add('d-none', 'd-touch-inline-flex');
+  } else {
+    btnel.querySelector('.button-container a').remove();
+  }
+  block.querySelector('.video-modal-button').classList.add('link-like-button');
+  // Add function of datalayer
+  addVideoButtonToDataLayer(heading, createButton, 'Body', 'video-item', 'columns', videoSrc, para);
+  // Modal overlay starts
+  const buttonTarget = btnel.querySelector('button[data-bs-target]');
+  const modalBtnTarget = buttonTarget?.getAttribute('data-bs-target');
+  let modalOverlayHtml;
+  if (videoSrc.includes('image')) {
+    // eslint-disable-next-line max-len
+    modalOverlayHtml = bootstrapModalOverlayHtmlGenerator(modalBtnTarget, videoSrc, block.querySelector('h5'), false, true);
+  } else {
+    modalOverlayHtml = bootstrapModalOverlayHtmlGenerator(modalBtnTarget, videoSrc, '');
+  }
+  insertModal(block, modalOverlayHtml);
+}
+// Check if any character is present before a text
+export function getCharBeforeSpecific(text, specificChar) {
+  const charIndex = text.indexOf(specificChar);
+  let charBefore;
+  if (charIndex > 0) {
+    charBefore = text.substring(charIndex - 1, charIndex);
+  } else {
+    charBefore = null;
+  }
+  return charBefore;
+}
+
+// Inpage nav fixes
+
+export function getTopOffsets() {
+  const inpageNav = document.querySelector('.inpage-nav-wrapper')?.getBoundingClientRect().height || 0;
+  const blueBar = document.querySelector('.blue-bar')?.getBoundingClientRect().height || 0;
+  const total = inpageNav + blueBar;
+  return { inpageNav, blueBar, total };
+}
+
+document.querySelectorAll('a[href^="#"]:not([href="#hide-static"]):not([title="Contact"])').forEach((button) => {
+  button.addEventListener('click', (event) => {
+    event.preventDefault();
+    const targetId = button.getAttribute('href').substring(1); // Get ID without '#'
+    window.location.hash = targetId;
+    const targetElem = document.getElementById(targetId);
+    const { total } = getTopOffsets();
+    window.scrollTo({ top: targetElem.offsetTop - total + 2, behavior: 'smooth' });
+  });
+});

@@ -1,0 +1,138 @@
+.modal {
+  background-color: rgba(0 0 72 / 85%) !important;
+  height: 100vh;
+}
+  
+.ratio-16x9 {
+  aspect-ratio: 16 / 9;
+  width: 100%;
+}
+
+.modal-dialog {
+  margin: var(--bs-modal-margin);
+  margin-left: auto;
+  margin-right: auto;
+  max-width: var(--bs-modal-width);
+  pointer-events: none;
+  position: relative;
+  width: auto;
+}
+  
+.modal .modal-dialog {
+  border: 1px solid hsla(0deg 0% 100% / 50%);
+  border-radius: .75rem
+}
+
+.modal .modal-dialog.modal-fullscreen{
+    margin: 0;
+    max-width: none;
+    width: 100vw !important;
+}
+  
+  .modal .modal-dialog button.btn-close {
+    background: none;
+    border: none;
+    color: var(--gray-medium);
+    cursor: pointer!important;
+    font-size: 2rem;
+    font-weight: 400;
+    padding: 0!important;
+    display: block;
+  }
+  
+  .modal .modal-dialog button.btn-close:hover {
+    color: var(--accent2-dark);
+  }
+  
+.modal .modal-dialog .modal-header {
+  border-bottom: 0;
+  padding: 0 1rem
+}
+  
+.modal .modal-dialog .modal-body {
+  padding: 0 1rem 1rem
+}
+  
+.modal-backdrop {
+  z-index: 0
+}
+  
+.modal-fade-right .modal.fade.fade-right .modal-dialog {
+  transform: translate(100%);
+  transition: transform .5s ease-out,-webkit-transform .5s ease-out
+}
+  
+.modal-fade-right .modal.fade.show.fade-right .modal-dialog {
+  transform: translate(0);
+  transition: transform .5s ease-out,-webkit-transform .5s ease-out
+}
+  
+.modal .close::before {
+  font-weight: 400;
+}
+  
+.btn-close {
+  position: absolute;
+  right: .5rem;
+  top: -5px;
+  width: auto;
+  height: auto;
+  opacity: 1;
+}
+
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  margin: 0;
+}
+
+button:focus {
+  outline-color: rgb(38 239 233) !important;
+  outline-offset: 0.2rem !important;
+  outline-width: 2px !important;
+}
+
+.modal-content {
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  background-clip: padding-box;
+  background-color: var(--bs-modal-bg);
+  border: 1px solid var(--bs-modal-border-color);
+  border-radius: 0.75rem;
+  box-shadow: var(--bs-modal-box-shadow);
+  color: var(--bs-modal-color);
+  flex-direction: column;
+  outline: 0;
+  pointer-events: auto;
+  position: relative;
+  width: 100%;
+}
+  
+@media (min-width: 576px) {
+    .modal-dialog {
+        max-width: var(--bs-modal-width);
+        margin-right: auto;
+        margin-left: auto;
+    }
+}
+  
+@media (min-width: 992px) {
+  .modal-lg, .modal-xl {
+      --bs-modal-width: 800px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .modal-lg, .modal-xl {
+      --bs-modal-width: 800px;
+  }
+}
+
+.modal-xl {
+  --bs-modal-width: 1140px;
+}
+
+.modal-fullscreen .modal-content{
+  border-radius: 0.75rem;
+}

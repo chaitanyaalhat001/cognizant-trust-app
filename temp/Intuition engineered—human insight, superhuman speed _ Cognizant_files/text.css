@@ -1,0 +1,92 @@
+.title_valign { /* stylelint-disable-line */
+    display: inline-flex;
+    vertical-align: middle;
+    align-content: center;
+    align-items: center;
+}
+
+.header_title h3 { /* stylelint-disable-line */
+    font-size: 6rem;
+    margin-bottom: 0;
+    color: #92BBE6;
+}
+
+.header_title h4 { /* stylelint-disable-line */
+    font-size: 3rem;
+    margin-bottom: 0;
+}
+
+.text-bg-img {
+    padding: 3rem .5rem;
+}
+
+/* plaintext for engineering intuition */
+#fivegcontainer .text {
+    padding: 3rem;
+}
+
+.text .AnchorCogStudy, .text .AnchorCogStudy1 { /* stylelint-disable-line */
+    color: #85BDE7; 
+    text-decoration: none;
+}
+
+.headerSpacing-fix h1{ /* stylelint-disable-line */
+    display: flex;
+    margin-bottom: 0;
+}
+
+tbody, td, tfoot, th, thead, tr {
+    border: 0 solid;
+    border-color: inherit;
+}
+
+.text table td, .text table th {
+    padding: 8px;
+}
+
+.text table td+td, .text table td+th, .text table th+td, .text table th+th {
+    border-left: 1px solid #97999b;
+}
+
+.text table tr:nth-child(odd) td, .text table tr:nth-child(odd) th {
+    border-bottom: 1px solid #97999b;
+}
+
+.text table {
+    border: 1px hidden #97999b;
+    border-bottom: 0;
+    border-collapse: collapse;
+    -webkit-box-shadow: 0 0 0 1px #97999b; /* stylelint-disable-line */
+    box-shadow: 0 0 0 1px #97999b;
+}
+
+.text table tr {
+    background-color: #fff;
+}
+
+.text table tr:nth-child(2n) {
+    background-color: #f5f5f2;
+}
+
+.wrapper-services-list p a {
+    text-decoration: none;
+}
+
+.wrapper-services-list p a::after {
+    -webkit-font-feature-settings: "liga";/* stylelint-disable-line */
+  -ms-font-feature-settings: "liga" 1;/* stylelint-disable-line */
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: Cognizant-Icons!important;/* stylelint-disable-line */
+  font-style: normal;
+  font-variant: normal;
+  -webkit-font-variant-ligatures: discretionary-ligatures;/* stylelint-disable-line */
+  font-variant-ligatures: discretionary-ligatures;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  margin-left: .5rem;
+  text-transform: none;
+  content: "";
+}

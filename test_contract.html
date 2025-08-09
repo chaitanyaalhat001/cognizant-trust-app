@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ultra-Minimal Spending Contract Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.4/dist/web3.min.js"></script>
+</head>
+<body>
+    <h1>🚀 Ultra-Minimal Spending Contract Test</h1>
+    <p><strong>Contract Address:</strong> <code>0x732F8A850d4Ad351858FAcCb4e207C42bEA88C91</code></p>
+    
+    <div style="margin: 20px 0;">
+        <h3>Test Recording Spending</h3>
+        <label>Amount (₹): <input type="number" id="amount" value="1000" min="1"></label><br><br>
+        <label>Category: 
+            <select id="category">
+                <option value="0">Education</option>
+                <option value="1">Healthcare</option>
+                <option value="2">Food Distribution</option>
+                <option value="3">Shelter</option>
+                <option value="4">Disaster Relief</option>
+                <option value="5">Elderly Care</option>
+                <option value="6">Child Welfare</option>
+                <option value="7">Skill Development</option>
+                <option value="8">Sanitation</option>
+                <option value="9">Other</option>
+            </select>
+        </label><br><br>
+        <button onclick="testRecordSpending()">🚀 Test Record Spending</button>
+        <button onclick="testGetTotalSpendings()">📊 Get Total Spendings</button>
+    </div>
+    
+    <div id="results" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;"></div>
+
+    <script>
+        const CONTRACT_ADDRESS = '0x732F8A850d4Ad351858FAcCb4e207C42bEA88C91';
+        const CONTRACT_ABI = [
+            {
+                "inputs": [
+                    {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                    {"internalType": "uint8", "name": "categoryId", "type": "uint8"}
+                ],
+                "name": "recordSpending",
+                "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getTotalSpendings",
+                "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [{"internalType": "bytes32", "name": "spendingHash", "type": "bytes32"}],
+                "name": "getSpending",
+                "outputs": [
+                    {"internalType": "uint256", "name": "amount", "type": "uint256"},
+                    {"internalType": "uint8", "name": "categoryId", "type": "uint8"},
+                    {"internalType": "uint32", "name": "timestamp", "type": "uint32"}
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ];
+
+        let web3;
+        let contract;
+        let userAccount;
+
+        async function initWeb3() {
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                userAccount = accounts[0];
+                
+                document.getElementById('results').innerHTML = `
+                    <h4>✅ Web3 Initialized</h4>
+                    <p><strong>Connected Account:</strong> ${userAccount}</p>
+                    <p><strong>Contract Address:</strong> ${CONTRACT_ADDRESS}</p>
+                `;
+            } else {
+                document.getElementById('results').innerHTML = `
+                    <h4>❌ MetaMask Not Found</h4>
+                    <p>Please install MetaMask to test the contract.</p>
+                `;
+            }
+        }
+
+        async function testRecordSpending() {
+            if (!contract || !userAccount) {
+                await initWeb3();
+            }
+
+            const amount = document.getElementById('amount').value;
+            const categoryId = document.getElementById('category').value;
+            const amountInPaisa = parseInt(amount) * 100;
+
+            try {
+                document.getElementById('results').innerHTML = `
+                    <h4>🚀 Recording Spending...</h4>
+                    <p>Amount: ₹${amount} (${amountInPaisa} paisa)</p>
+                    <p>Category ID: ${categoryId}</p>
+                    <p>Please confirm transaction in MetaMask...</p>
+                `;
+
+                // Estimate gas first
+                const gasEstimate = await contract.methods.recordSpending(amountInPaisa, categoryId).estimateGas({ from: userAccount });
+                
+                // Send transaction
+                const tx = await contract.methods.recordSpending(amountInPaisa, categoryId).send({ from: userAccount });
+
+                document.getElementById('results').innerHTML = `
+                    <h4>✅ Spending Recorded Successfully!</h4>
+                    <p><strong>Transaction Hash:</strong> <a href="https://sepolia.etherscan.io/tx/${tx.transactionHash}" target="_blank">${tx.transactionHash}</a></p>
+                    <p><strong>Gas Used:</strong> ${tx.gasUsed}</p>
+                    <p><strong>Gas Estimated:</strong> ${gasEstimate}</p>
+                    <p><strong>Amount:</strong> ₹${amount} (${amountInPaisa} paisa)</p>
+                    <p><strong>Category ID:</strong> ${categoryId}</p>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <h4>❌ Error Recording Spending</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        async function testGetTotalSpendings() {
+            if (!contract) {
+                await initWeb3();
+            }
+
+            try {
+                const total = await contract.methods.getTotalSpendings().call();
+                
+                document.getElementById('results').innerHTML = `
+                    <h4>📊 Contract Statistics</h4>
+                    <p><strong>Total Spending Records:</strong> ${total}</p>
+                    <p><strong>Contract Address:</strong> <a href="https://sepolia.etherscan.io/address/${CONTRACT_ADDRESS}" target="_blank">${CONTRACT_ADDRESS}</a></p>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <h4>❌ Error Getting Total</h4>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                `;
+            }
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', initWeb3);
+    </script>
+</body>
+</html> 

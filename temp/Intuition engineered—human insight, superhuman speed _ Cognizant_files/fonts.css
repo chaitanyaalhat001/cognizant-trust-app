@@ -1,0 +1,80 @@
+/*  --- Sample dotcom design ---  */
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-Light.woff2') format('woff2'),
+    url('../fonts/Gellix-Light.woff') format('woff'),
+    url('../fonts/Gellix-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-LightItalic.woff2')
+      format('woff2'),
+    url('../fonts/Gellix-LightItalic.woff') format('woff'),
+    url('../fonts/Gellix-LightItalic.ttf') format('truetype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-Regular.woff2') format('woff2'),
+    url('../fonts/Gellix-Regular.woff') format('woff'),
+    url('../fonts/Gellix-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-RegularItalic.woff2')
+      format('woff2'),
+    url('../fonts/Gellix-RegularItalic.woff') format('woff'),
+    url('../fonts/Gellix-RegularItalic.ttf')
+      format('truetype');
+  font-weight: normal;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-SemiBold.woff2') format('woff2'),
+    url('../fonts/Gellix-SemiBold.woff') format('woff'),
+    url('../fonts/Gellix-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Gellix'; /* stylelint-disable-line */
+  src: url('../fonts/Gellix-SemiBoldItalic.woff2')
+      format('woff2'),
+    url('../fonts/Gellix-SemiBoldItalic.woff') format('woff'),
+    url('../fonts/Gellix-SemiBoldItalic.ttf')
+      format('truetype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* --- Icons --- */
+@font-face {
+  font-family: 'Cognizant-Icons';/* stylelint-disable-line */
+  src: url('../fonts/icons/Cognizant-Icons.ttf?fo68q0')
+      format('truetype'),
+    url('../fonts/icons/Cognizant-Icons.svg?fo68q0#Cognizant-Icons')
+      format('svg'),
+    url('../fonts/icons/Cognizant-Icons.woff')
+      format('woff');
+  font-weight: normal;
+  font-style: normal;
+  font-display: block;
+}
