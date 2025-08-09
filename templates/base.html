@@ -1449,12 +1449,161 @@
                 padding: var(--space-sm) var(--space-lg);
                 font-size: 0.9rem;
             }
+            
+            /* MOBILE-SPECIFIC FORM IMPROVEMENTS */
+            .form-control, .form-select {
+                font-size: 16px !important; /* Prevents zoom on iOS */
+                min-height: 48px; /* Better touch targets */
+                padding: 14px 16px; /* Improved touch area */
+            }
+            
+            .btn {
+                min-height: 48px; /* Better touch targets */
+                font-size: 16px !important; /* Consistent sizing */
+            }
+            
+            /* Improve card padding on mobile */
+            .card-body {
+                padding: 1.5rem !important;
+            }
+            
+            /* Better spacing for mobile forms */
+            .mb-3 {
+                margin-bottom: 1.5rem !important;
+            }
+            
+            /* Improve login/register form column layout */
+            .col-md-6, .col-md-4 {
+                margin-bottom: 1rem;
+            }
+            
+            /* Make hero sections more mobile-friendly */
+            .hero-gradient {
+                padding: 3rem 0 !important;
+            }
+            
+            .display-4 {
+                font-size: 2.5rem !important;
+            }
+            
+            /* Better navigation on mobile */
+            .navbar-nav {
+                padding: 1rem 0;
+            }
+            
+            .navbar-nav .nav-link {
+                padding: 0.75rem 1rem !important;
+                margin: 0.25rem 0;
+                border-radius: 8px;
+            }
+            
+            /* Dropdown improvements for mobile */
+            .dropdown-menu {
+                border-radius: 12px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+                margin-top: 0.5rem;
+            }
+            
+            .dropdown-item {
+                padding: 0.75rem 1.25rem;
+            }
         }
         
-        /* Additional responsive breakpoint for very long numbers */
-        @media (max-width: 1200px) {
-            .stats-number.currency-amount {
-                font-size: 2rem;
+        /* CRITICAL MOBILE FORM FIXES */
+        @media (max-width: 576px) {
+            /* Single column layout for mobile */
+            .col-md-6, .col-md-4 {
+                flex: 0 0 auto;
+                width: 100%;
+            }
+            
+            /* Larger touch targets */
+            .form-control, .form-select, .btn {
+                font-size: 16px !important;
+                min-height: 52px;
+                padding: 16px;
+            }
+            
+            /* Prevent zoom on form inputs (iOS) */
+            input[type="text"], 
+            input[type="email"], 
+            input[type="password"], 
+            input[type="tel"], 
+            textarea, 
+            select {
+                font-size: 16px !important;
+                -webkit-appearance: none;
+                border-radius: 8px;
+            }
+            
+            /* Better card spacing */
+            .card {
+                margin: 1rem 0.5rem;
+                border-radius: 16px;
+            }
+            
+            .card-body {
+                padding: 1.25rem !important;
+            }
+            
+            /* Hero section adjustments */
+            .hero-gradient {
+                padding: 2rem 0 !important;
+                margin-bottom: 2rem !important;
+            }
+            
+            .display-4 {
+                font-size: 2rem !important;
+                line-height: 1.2;
+            }
+            
+            .lead {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* MOBILE INTERACTION IMPROVEMENTS */
+        /* Better button hover states for touch devices */
+        @media (hover: none) and (pointer: coarse) {
+            .btn:hover {
+                transform: none !important;
+                box-shadow: none !important;
+            }
+            
+            .btn:active {
+                transform: scale(0.98) !important;
+                transition: transform 0.1s ease !important;
+            }
+            
+            .card:hover {
+                transform: none !important;
+                box-shadow: var(--shadow-md) !important;
+            }
+        }
+        
+        /* ACCESSIBILITY IMPROVEMENTS FOR MOBILE */
+        /* Focus states for keyboard navigation */
+        .form-control:focus, 
+        .btn:focus,
+        .nav-link:focus {
+            outline: 2px solid var(--cognizant-blue);
+            outline-offset: 2px;
+        }
+        
+        /* Dark mode mobile improvements */
+        [data-theme="dark"] {
+            @media (max-width: 768px) {
+                .form-control {
+                    background: #2d2d2d !important;
+                    border: 2px solid #555555 !important;
+                    color: #ffffff !important;
+                }
+                
+                .form-control:focus {
+                    border-color: #0ea5e9 !important;
+                    background: #2d2d2d !important;
+                    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.25) !important;
+                }
             }
         }
         
@@ -1633,6 +1782,118 @@
     
     <!-- Web3.js for blockchain interactions -->
     <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js"></script>
+    
+    <!-- Mobile Form Optimization -->
+    <script>
+        // Mobile-specific form improvements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detect mobile device
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            if (isMobile) {
+                // Add mobile-specific attributes to form inputs
+                const formInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="password"], input[type="tel"], textarea');
+                formInputs.forEach(function(input) {
+                    // Prevent zoom on iOS
+                    input.style.fontSize = '16px';
+                    
+                    // Add autocomplete attributes for better mobile experience
+                    if (input.type === 'email') {
+                        input.setAttribute('autocomplete', 'email');
+                        input.setAttribute('autocapitalize', 'none');
+                        input.setAttribute('autocorrect', 'off');
+                    }
+                    
+                    if (input.type === 'password') {
+                        input.setAttribute('autocomplete', 'current-password');
+                    }
+                    
+                    if (input.name === 'username') {
+                        input.setAttribute('autocomplete', 'username');
+                        input.setAttribute('autocapitalize', 'none');
+                        input.setAttribute('autocorrect', 'off');
+                    }
+                    
+                    if (input.name === 'first_name') {
+                        input.setAttribute('autocomplete', 'given-name');
+                        input.setAttribute('autocapitalize', 'words');
+                    }
+                    
+                    if (input.name === 'last_name') {
+                        input.setAttribute('autocomplete', 'family-name');
+                        input.setAttribute('autocapitalize', 'words');
+                    }
+                    
+                    if (input.type === 'tel') {
+                        input.setAttribute('autocomplete', 'tel');
+                    }
+                });
+                
+                // Add touch-friendly button behavior
+                const buttons = document.querySelectorAll('.btn');
+                buttons.forEach(function(btn) {
+                    btn.addEventListener('touchstart', function() {
+                        this.style.transform = 'scale(0.98)';
+                    });
+                    
+                    btn.addEventListener('touchend', function() {
+                        this.style.transform = 'scale(1)';
+                    });
+                });
+                
+                // Improve form submission on mobile
+                const forms = document.querySelectorAll('form');
+                forms.forEach(function(form) {
+                    form.addEventListener('submit', function(e) {
+                        // Disable submit button to prevent double submission
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            submitBtn.disabled = true;
+                            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processing...';
+                            
+                            // Re-enable after 3 seconds in case of error
+                            setTimeout(function() {
+                                submitBtn.disabled = false;
+                                submitBtn.innerHTML = submitBtn.getAttribute('data-original-text') || 'Submit';
+                            }, 3000);
+                        }
+                    });
+                });
+                
+                // Store original button text for restore
+                document.querySelectorAll('button[type="submit"]').forEach(function(btn) {
+                    btn.setAttribute('data-original-text', btn.innerHTML);
+                });
+            }
+            
+            // Universal improvements for all devices
+            // Add visual feedback for form validation
+            const formControls = document.querySelectorAll('.form-control');
+            formControls.forEach(function(control) {
+                control.addEventListener('blur', function() {
+                    if (this.value.trim() !== '') {
+                        this.classList.add('has-value');
+                    } else {
+                        this.classList.remove('has-value');
+                    }
+                });
+            });
+        });
+        
+        // Smooth scroll for anchor links (mobile-friendly)
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
     
     <!-- Triple-Click Dark Mode Toggle -->
     <script>
